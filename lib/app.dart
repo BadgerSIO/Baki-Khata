@@ -31,8 +31,13 @@ final authStateProvider = StreamProvider<AuthState>((ref) {
 
 final currentTabProvider = StateProvider<int>((ref) => 0);
 
-/// Checks whether any local settings row exists to decide between Onboarding and Main app.
+/// Checks whether any local settings row exists or the user is authenticated
+/// to decide between Onboarding and Main app.
 final hasLocalSettingsProvider = FutureProvider<bool>((ref) async {
+  final currentUserService = ref.watch(currentUserServiceProvider);
+  if (currentUserService.isAuthenticated) {
+    return true;
+  }
   return await LocalDatabase.instance.hasAnySettings();
 });
 
@@ -72,7 +77,7 @@ class BakiKhataApp extends ConsumerWidget {
               if (!hasSettings) {
                 return const OnboardingScreen();
               }
-              return const MainNavigationScaffold();
+              return const InitialSyncGate();
             },
             loading: () => const Scaffold(
               backgroundColor: Color(0xFFF7FAF8),
@@ -89,7 +94,7 @@ class BakiKhataApp extends ConsumerWidget {
           if (!hasSettings) {
             return const OnboardingScreen();
           }
-          return const MainNavigationScaffold();
+          return const InitialSyncGate();
         },
         loading: () => const Scaffold(
           backgroundColor: Color(0xFFF7FAF8),

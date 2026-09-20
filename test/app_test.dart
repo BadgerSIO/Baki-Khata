@@ -66,6 +66,33 @@ void main() {
       expect(find.byType(BottomNavigationBar), findsOneWidget);
       expect(find.text("Let's set up your shop"), findsNothing);
     });
+
+    testWidgets('Authenticated user routes to MainNavigationScaffold even when no local settings exist', (tester) async {
+      final mockSettingsRepo = _MockSettingsRepository(initialSettings: testSettings);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            currentUserServiceProvider.overrideWithValue(
+              _MockCurrentUserService(isAuthenticatedUser: true, userId: 'user-auth-123'),
+            ),
+            currentUserIdProvider.overrideWith((ref) => Stream.value('user-auth-123')),
+            settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+            customersStreamProvider.overrideWith((ref) => Stream.value(<Customer>[])),
+            transactionsStreamProvider.overrideWith((ref) => Stream.value(<AppTransaction>[])),
+            settingsStreamProvider.overrideWith((ref) => Stream.value(testSettings)),
+            syncStatusProvider.overrideWith((ref) => SyncStatus.idle),
+            initialSyncCompletedProvider.overrideWith((ref) => true),
+          ],
+          child: const BakiKhataApp(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MainNavigationScaffold), findsOneWidget);
+      expect(find.text("Let's set up your shop"), findsNothing);
+    });
   });
 
   group('MainNavigationScaffold Tab Navigation & IndexedStack', () {
@@ -157,4 +184,20 @@ class _MockSettingsRepository implements SettingsRepository {
 
   @override
   Stream<AppSettings> watchSettings() => Stream.value(initialSettings);
+}
+
+class _MockCurrentUserService extends CurrentUserService {
+  final bool isAuthenticatedUser;
+  final String userId;
+
+  _MockCurrentUserService({required this.isAuthenticatedUser, required this.userId});
+
+  @override
+  bool get isAuthenticated => isAuthenticatedUser;
+
+  @override
+  bool get isGuest => !isAuthenticatedUser;
+
+  @override
+  String get effectiveUserId => userId;
 }

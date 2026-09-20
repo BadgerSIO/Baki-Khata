@@ -165,6 +165,57 @@ void main() {
     expect(find.widgetWithText(FilledButton, 'Create Account'), findsOneWidget);
     expect(find.text('Minimum 8 characters'), findsOneWidget);
   });
+
+  testWidgets('Authenticated user landing on OnboardingScreen is automatically redirected to MainNavigationScaffold', (tester) async {
+    final now = DateTime.now();
+    final dummySettings = AppSettings(
+      userId: 'user-123',
+      shopName: 'Cloud Shop',
+      currencySymbol: '৳',
+      updatedAt: now,
+    );
+    final mockRepo = _MockSettingsRepository(initialSettings: dummySettings);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentUserServiceProvider.overrideWithValue(
+            _MockCurrentUserService(isAuthenticatedUser: true, userId: 'user-123'),
+          ),
+          currentUserIdProvider.overrideWith((ref) => Stream.value('user-123')),
+          settingsRepositoryProvider.overrideWithValue(mockRepo),
+          customersStreamProvider.overrideWith((ref) => Stream.value(<Customer>[])),
+          transactionsStreamProvider.overrideWith((ref) => Stream.value(<AppTransaction>[])),
+          settingsStreamProvider.overrideWith((ref) => Stream.value(dummySettings)),
+          syncStatusProvider.overrideWith((ref) => SyncStatus.idle),
+        ],
+        child: const MaterialApp(
+          home: OnboardingScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MainNavigationScaffold), findsOneWidget);
+    expect(find.text("Let's set up your shop"), findsNothing);
+  });
+}
+
+class _MockCurrentUserService extends CurrentUserService {
+  final bool isAuthenticatedUser;
+  final String userId;
+
+  _MockCurrentUserService({required this.isAuthenticatedUser, required this.userId});
+
+  @override
+  bool get isAuthenticated => isAuthenticatedUser;
+
+  @override
+  bool get isGuest => !isAuthenticatedUser;
+
+  @override
+  String get effectiveUserId => userId;
 }
 
 class _MockSettingsRepository implements SettingsRepository {

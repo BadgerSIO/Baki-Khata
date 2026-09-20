@@ -1,12 +1,16 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 class LocalDatabase {
   static final LocalDatabase instance = LocalDatabase._init();
   static Database? _database;
 
-  // In-memory fallback for web support without sqflite ffi
+  static const String _webStorageKey = 'baki_khata_web_store_v1';
+
+  // In-memory fallback and cache for web support without sqflite ffi
   static int _webPendingOpAutoInc = 1;
   static final Map<String, List<Map<String, dynamic>>> _webStore = {
     'customers': [],
@@ -22,6 +26,44 @@ class LocalDatabase {
     _database = db;
   }
 
+  static Future<void> _loadWebStore() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_webStorageKey);
+      if (raw != null && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map<String, dynamic>) {
+          for (final key in _webStore.keys) {
+            if (decoded.containsKey(key) && decoded[key] is List) {
+              _webStore[key] = (decoded[key] as List)
+                  .map((e) => Map<String, dynamic>.from(e as Map))
+                  .toList();
+            }
+          }
+          if (decoded.containsKey('_webPendingOpAutoInc')) {
+            _webPendingOpAutoInc = (decoded['_webPendingOpAutoInc'] as num).toInt();
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[LocalDatabase] Error loading web store from SharedPreferences: $e');
+    }
+  }
+
+  static Future<void> _saveWebStore() async {
+    if (!kIsWeb) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final payload = <String, dynamic>{
+        for (final entry in _webStore.entries) entry.key: entry.value,
+        '_webPendingOpAutoInc': _webPendingOpAutoInc,
+      };
+      await prefs.setString(_webStorageKey, jsonEncode(payload));
+    } catch (e) {
+      debugPrint('[LocalDatabase] Error saving web store to SharedPreferences: $e');
+    }
+  }
+
   Future<Database?> get database async {
     if (kIsWeb) return null;
     if (_database != null) return _database!;
@@ -31,7 +73,8 @@ class LocalDatabase {
 
   Future<void> initialize() async {
     if (kIsWeb) {
-      debugPrint('Running on Web: Using in-memory store for local operations.');
+      await _loadWebStore();
+      debugPrint('Running on Web: Initialized persistent store for local operations.');
       return;
     }
     await database;
@@ -155,6 +198,7 @@ class LocalDatabase {
     if (kIsWeb) {
       _webStore['customers']!.removeWhere((item) => item['id'] == data['id']);
       _webStore['customers']!.add(Map<String, dynamic>.from(data));
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -190,6 +234,7 @@ class LocalDatabase {
     if (kIsWeb) {
       _webStore['customers']!.removeWhere((item) => item['id'] == id);
       _webStore['transactions']!.removeWhere((item) => item['customer_id'] == id);
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -203,6 +248,7 @@ class LocalDatabase {
     if (kIsWeb) {
       _webStore['transactions']!.removeWhere((item) => item['id'] == data['id']);
       _webStore['transactions']!.add(Map<String, dynamic>.from(data));
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -244,6 +290,7 @@ class LocalDatabase {
   Future<void> deleteTransaction(String id) async {
     if (kIsWeb) {
       _webStore['transactions']!.removeWhere((item) => item['id'] == id);
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -256,6 +303,7 @@ class LocalDatabase {
     if (kIsWeb) {
       _webStore['settings']!.removeWhere((item) => item['user_id'] == data['user_id']);
       _webStore['settings']!.add(Map<String, dynamic>.from(data));
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -287,6 +335,7 @@ class LocalDatabase {
   Future<void> deleteSettings(String userId) async {
     if (kIsWeb) {
       _webStore['settings']!.removeWhere((item) => item['user_id'] == userId);
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -300,6 +349,7 @@ class LocalDatabase {
           item['user_id'] = newUserId;
         }
       }
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -313,6 +363,7 @@ class LocalDatabase {
           item['user_id'] = newUserId;
         }
       }
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -326,6 +377,7 @@ class LocalDatabase {
           item['customer_id'] = newCustomerId;
         }
       }
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -343,6 +395,7 @@ class LocalDatabase {
       _webStore['transactions']!.removeWhere((item) => item['user_id'] == 'local_guest');
       _webStore['settings']!.removeWhere((item) => item['user_id'] == 'local_guest');
       await clearGuestPendingOps();
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -372,6 +425,7 @@ class LocalDatabase {
         'created_at': now,
       };
       _webStore['pending_ops']!.add(op);
+      await _saveWebStore();
       return id;
     }
     final db = await database;
@@ -397,6 +451,7 @@ class LocalDatabase {
   Future<void> deletePendingOp(int id) async {
     if (kIsWeb) {
       _webStore['pending_ops']!.removeWhere((item) => item['id'] == id);
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -407,6 +462,7 @@ class LocalDatabase {
     if (kIsWeb) {
       _webStore['pending_ops']!.removeWhere((item) =>
           (item['payload'] as String? ?? '').contains('local_guest'));
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -432,6 +488,7 @@ class LocalDatabase {
         'table_name': tableName,
         'last_synced_at': lastSyncedAt,
       });
+      await _saveWebStore();
       return;
     }
     final db = await database;
@@ -446,7 +503,14 @@ class LocalDatabase {
   }
 
   Future<void> close() async {
-    if (!kIsWeb && _database != null) {
+    if (kIsWeb) {
+      for (final key in _webStore.keys) {
+        _webStore[key]!.clear();
+      }
+      _webPendingOpAutoInc = 1;
+      return;
+    }
+    if (_database != null) {
       await _database!.close();
       _database = null;
     }

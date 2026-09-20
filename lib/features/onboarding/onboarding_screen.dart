@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app.dart';
+import '../../core/current_user_service.dart';
 import '../../core/theme.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../auth/account_screen.dart';
@@ -19,6 +20,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _shopNameController = TextEditingController();
   final _currencyController = TextEditingController(text: '৳');
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && ref.read(currentUserServiceProvider).isAuthenticated) {
+        if (widget.onContinue != null) {
+          widget.onContinue!();
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const MainNavigationScaffold()),
+          );
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
