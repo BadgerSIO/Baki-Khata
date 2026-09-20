@@ -270,6 +270,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final settingsAsync = ref.watch(settingsStreamProvider);
     final syncStatus = ref.watch(syncStatusProvider);
     final lastSynced = ref.watch(lastSyncedTimeProvider);
+    final lastSyncError = ref.watch(lastSyncErrorProvider);
     final theme = Theme.of(context);
     final statusColor = _getStatusColor(syncStatus);
     final currentUserId = ref.watch(currentUserIdProvider).value ?? CurrentUserService.guestSentinel;
@@ -349,6 +350,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ],
                   ),
+                  if (syncStatus == SyncStatus.error && lastSyncError != null) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.debtBg,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.debtText.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            size: 16,
+                            color: AppColors.debtText,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              lastSyncError,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.debtText,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Text(
                     'Last synced: ${_formatLastSynced(lastSynced)}',

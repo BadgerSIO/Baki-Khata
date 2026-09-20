@@ -9,6 +9,7 @@ class SyncStatusIndicator extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final status = ref.watch(syncStatusProvider);
+    final lastError = ref.watch(lastSyncErrorProvider);
 
     Widget iconWidget;
     String tooltip;
@@ -37,7 +38,9 @@ class SyncStatusIndicator extends ConsumerWidget {
           size: 20,
           color: AppColors.debtText,
         );
-        tooltip = 'Sync error - tap to retry';
+        tooltip = lastError != null
+            ? 'Sync error: $lastError\nTap to retry'
+            : 'Sync error - tap to retry';
       case SyncStatus.guest:
         iconWidget = const Icon(
           Icons.cloud_queue_outlined,

@@ -21,6 +21,7 @@ final syncStatusProvider = StateProvider<SyncStatus>((ref) {
 });
 
 final lastSyncedTimeProvider = StateProvider<DateTime?>((ref) => null);
+final lastSyncErrorProvider = StateProvider<String?>((ref) => null);
 
 class SyncService {
   final LocalDatabase _localDb;
@@ -33,7 +34,11 @@ class SyncService {
   Future<bool>? _pushInFlight;
   bool _wasOnline = true;
   bool _isAppForeground = true;
+  String? _lastError;
+  final Map<int, int> _pendingOpFailures = {};
 
+  RealtimeChannel? _realtimeChannel;
+  StreamSubscription<AuthState>? _authSubscription;
   Timer? _periodicTimer;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   AppLifecycleListener? _lifecycleListener;
@@ -72,6 +77,7 @@ class SyncService {
   }
 
   SyncStatus get status => _status;
+  String? get lastError => _lastError;
 
   void registerRefreshCallback(Future<void> Function() callback) {
     _refreshCallbacks.add(callback);
@@ -82,6 +88,14 @@ class SyncService {
     final r = ref;
     if (r != null) {
       r.read(syncStatusProvider.notifier).state = newStatus;
+    }
+  }
+
+  void _setError(String? error) {
+    _lastError = error;
+    final r = ref;
+    if (r != null) {
+      r.read(lastSyncErrorProvider.notifier).state = error;
     }
   }
 
@@ -106,6 +120,8 @@ class SyncService {
       } else {
         _updateStatus(SyncStatus.idle);
       }
+      _setupRealtimeSubscription(user.id);
+      _startPeriodicSync();
     }
 
     try {
@@ -119,6 +135,18 @@ class SyncService {
           r.read(lastSyncedTimeProvider.notifier).state = parsed.toLocal();
         }
       }
+    } catch (_) {}
+
+    // 1. Listen for auth state changes
+    try {
+      _authSubscription = _supabase?.auth.onAuthStateChange.listen((data) {
+        final sessionUser = data.session?.user;
+        if (sessionUser != null && sessionUser.id.isNotEmpty) {
+          _onUserSignedIn(sessionUser);
+        } else if (data.event == AuthChangeEvent.signedOut) {
+          _onUserSignedOut();
+        }
+      });
     } catch (_) {}
 
     // 2. Listen for connectivity transitions (offline -> online)
@@ -139,7 +167,10 @@ class SyncService {
     _lifecycleListener = AppLifecycleListener(
       onResume: () {
         _isAppForeground = true;
-        fullSync();
+        if (_currentUser != null) {
+          _setupRealtimeSubscription(_currentUser!.id);
+          fullSync();
+        }
       },
       onPause: () {
         _isAppForeground = false;
@@ -148,15 +179,248 @@ class SyncService {
         _isAppForeground = false;
       },
     );
+  }
 
-    // 4. Periodic 30s background sync while foreground, online, and authenticated
-    if (_enablePeriodicSync && _currentUser != null) {
-      _periodicTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-        if (_isAppForeground && _currentUser != null) {
-          fullSync();
-        }
-      });
+  void _onUserSignedIn(User user) {
+    _updateStatus(SyncStatus.idle);
+    _setupRealtimeSubscription(user.id);
+    _startPeriodicSync();
+    fullSync();
+  }
+
+  void _onUserSignedOut() {
+    _teardownRealtimeSubscription();
+    _stopPeriodicSync();
+    _setError(null);
+    _updateStatus(SyncStatus.guest);
+  }
+
+  void _startPeriodicSync() {
+    _periodicTimer?.cancel();
+    if (!_enablePeriodicSync) return;
+    _periodicTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_isAppForeground && _currentUser != null) {
+        fullSync();
+      }
+    });
+  }
+
+  void _stopPeriodicSync() {
+    _periodicTimer?.cancel();
+    _periodicTimer = null;
+  }
+
+  void _setupRealtimeSubscription(String userId) {
+    final client = _supabase;
+    if (client == null) return;
+
+    _teardownRealtimeSubscription();
+
+    try {
+      final channel = client.channel('public:baki_khata_sync_$userId');
+      channel
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'customers',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'user_id',
+              value: userId,
+            ),
+            callback: (payload) => _handleRealtimeCustomer(payload),
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'transactions',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'user_id',
+              value: userId,
+            ),
+            callback: (payload) => _handleRealtimeTransaction(payload),
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'settings',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'user_id',
+              value: userId,
+            ),
+            callback: (payload) => _handleRealtimeSettings(payload),
+          )
+          .subscribe();
+
+      _realtimeChannel = channel;
+      debugPrint('[SyncService] Subscribed to Supabase Realtime for user $userId');
+    } catch (e) {
+      debugPrint('[SyncService] Failed to subscribe to Realtime: $e');
     }
+  }
+
+  void _teardownRealtimeSubscription() {
+    if (_realtimeChannel != null) {
+      try {
+        _supabase?.removeChannel(_realtimeChannel!);
+      } catch (_) {}
+      _realtimeChannel = null;
+    }
+  }
+
+  Future<void> _handleRealtimeCustomer(PostgresChangePayload payload) async {
+    try {
+      if (payload.eventType == PostgresChangeEvent.delete) {
+        final id = payload.oldRecord['id'] as String?;
+        if (id != null) {
+          await _localDb.deleteCustomer(id);
+        }
+      } else {
+        final record = payload.newRecord;
+        if (record.isNotEmpty) {
+          await _localDb.upsertCustomer(record);
+        }
+      }
+      _notifyRefresh();
+    } catch (e) {
+      debugPrint('[SyncService] Error handling realtime customer: $e');
+    }
+  }
+
+  Future<void> _handleRealtimeTransaction(PostgresChangePayload payload) async {
+    try {
+      if (payload.eventType == PostgresChangeEvent.delete) {
+        final id = payload.oldRecord['id'] as String?;
+        if (id != null) {
+          await _localDb.deleteTransaction(id);
+        }
+      } else {
+        final record = payload.newRecord;
+        if (record.isNotEmpty) {
+          await _localDb.upsertTransaction(record);
+        }
+      }
+      _notifyRefresh();
+    } catch (e) {
+      debugPrint('[SyncService] Error handling realtime transaction: $e');
+    }
+  }
+
+  Future<void> _handleRealtimeSettings(PostgresChangePayload payload) async {
+    try {
+      if (payload.eventType == PostgresChangeEvent.delete) {
+        final userId = payload.oldRecord['user_id'] as String?;
+        if (userId != null) {
+          await _localDb.deleteSettings(userId);
+        }
+      } else {
+        final record = payload.newRecord;
+        if (record.isNotEmpty) {
+          await _localDb.upsertSettings(record);
+        }
+      }
+      _notifyRefresh();
+    } catch (e) {
+      debugPrint('[SyncService] Error handling realtime settings: $e');
+    }
+  }
+
+  void _notifyRefresh() {
+    for (final callback in _refreshCallbacks) {
+      try {
+        callback();
+      } catch (e) {
+        debugPrint('[SyncService] Refresh callback error: $e');
+      }
+    }
+  }
+
+  Future<bool> _ensureValidSession() async {
+    final client = _supabase;
+    if (client == null) return true;
+
+    try {
+      final session = client.auth.currentSession;
+      if (session == null) return false;
+
+      if (session.isExpired) {
+        debugPrint('[SyncService] Session expired, refreshing token...');
+        final res = await client.auth.refreshSession();
+        if (res.session == null) {
+          _setError('Session expired. Please sign in again.');
+          return false;
+        }
+      }
+      return true;
+    } catch (e) {
+      debugPrint('[SyncService] Session validation error: $e');
+      _setError('Authentication error: ${e.toString()}');
+      return false;
+    }
+  }
+
+  bool _isPermanentError(dynamic error) {
+    if (error is PostgrestException) {
+      final code = error.code;
+      if (code != null) {
+        if (code.startsWith('23') ||
+            code.startsWith('22') ||
+            code == '42501' ||
+            code.startsWith('42')) {
+          return true;
+        }
+      }
+      final msg = error.message.toLowerCase();
+      if (msg.contains('violates foreign key') ||
+          msg.contains('row-level security') ||
+          msg.contains('invalid input syntax') ||
+          msg.contains('violates check constraint')) {
+        return true;
+      }
+    }
+    final str = error.toString().toLowerCase();
+    if (str.contains('violates foreign key') ||
+        str.contains('row-level security') ||
+        str.contains('invalid input syntax') ||
+        str.contains('violates check constraint')) {
+      return true;
+    }
+    return false;
+  }
+
+  @visibleForTesting
+  bool isPermanentErrorForTesting(dynamic error) => _isPermanentError(error);
+
+  @visibleForTesting
+  Future<void> handleRealtimeCustomerForTesting({
+    required String eventType,
+    Map<String, dynamic>? newRecord,
+    Map<String, dynamic>? oldRecord,
+  }) async {
+    if (eventType == 'DELETE') {
+      final id = oldRecord?['id'] as String?;
+      if (id != null) await _localDb.deleteCustomer(id);
+    } else if (newRecord != null && newRecord.isNotEmpty) {
+      await _localDb.upsertCustomer(newRecord);
+    }
+    _notifyRefresh();
+  }
+
+  @visibleForTesting
+  Future<void> handleRealtimeTransactionForTesting({
+    required String eventType,
+    Map<String, dynamic>? newRecord,
+    Map<String, dynamic>? oldRecord,
+  }) async {
+    if (eventType == 'DELETE') {
+      final id = oldRecord?['id'] as String?;
+      if (id != null) await _localDb.deleteTransaction(id);
+    } else if (newRecord != null && newRecord.isNotEmpty) {
+      await _localDb.upsertTransaction(newRecord);
+    }
+    _notifyRefresh();
   }
 
   /// Fire-and-forget push called by repositories upon local write
@@ -169,7 +433,10 @@ class SyncService {
       final online = await isOnline();
       if (!online) return;
       if (_isSyncing) return;
-      await push();
+      final success = await push();
+      if (!success && _status != SyncStatus.offline) {
+        _updateStatus(SyncStatus.error);
+      }
     }());
   }
 
@@ -196,6 +463,9 @@ class SyncService {
   }
 
   Future<bool> _pushPendingOperations() async {
+    final user = _currentUser;
+    if (user == null) return false;
+
     while (true) {
       final ops = await _localDb.getPendingOps();
       if (ops.isEmpty) return true;
@@ -211,9 +481,23 @@ class SyncService {
         final recordId = op['record_id'] as String;
         final opType = op['op_type'] as String;
         final payloadStr = op['payload'] as String?;
-        final Map<String, dynamic>? payload = payloadStr != null
+        Map<String, dynamic>? payload = payloadStr != null
             ? jsonDecode(payloadStr) as Map<String, dynamic>
             : null;
+
+        if (payload != null) {
+          if (payload['user_id'] == 'local_guest' || payload['user_id'] == null) {
+            payload = Map<String, dynamic>.from(payload);
+            payload['user_id'] = user.id;
+          } else if (payload['user_id'] != user.id) {
+            debugPrint(
+              '[SyncService] Discarding op #$id for mismatched user ${payload['user_id']}',
+            );
+            await _localDb.deletePendingOp(id);
+            _pendingOpFailures.remove(id);
+            continue;
+          }
+        }
 
         try {
           if (opType == 'insert' || opType == 'update') {
@@ -227,19 +511,37 @@ class SyncService {
 
           // Successfully pushed -> remove from queue.
           await _localDb.deletePendingOp(id);
+          _pendingOpFailures.remove(id);
         } catch (e) {
+          final errorMsg = e.toString();
           debugPrint(
             '[SyncService] Error pushing pending op #$id for '
-            '$tableName ($opType): $e',
+            '$tableName ($opType): $errorMsg',
           );
-          // Stop pushing to preserve ordering.
+          _setError('Push error ($tableName): $errorMsg');
+
+          final failures = (_pendingOpFailures[id] ?? 0) + 1;
+          _pendingOpFailures[id] = failures;
+
+          final isPermanent = _isPermanentError(e);
+          if (isPermanent || failures >= 3) {
+            debugPrint(
+              '[SyncService] Dropping failed pending op #$id after '
+              '$failures failure(s) (isPermanent: $isPermanent) to avoid queue deadlock.',
+            );
+            await _localDb.deletePendingOp(id);
+            _pendingOpFailures.remove(id);
+            continue;
+          }
+
+          // Stop pushing for temporary/network errors to preserve ordering.
           return false;
         }
       }
     }
   }
 
-  /// PULL: Queries Supabase for rows with updated_at > last_synced_at, upserts into local DB.
+  /// PULL: Reconciles all remote records for the authenticated user into local DB.
   Future<bool> pull() async {
     final user = _currentUser;
     if (user == null) {
@@ -250,42 +552,87 @@ class SyncService {
     final client = _supabase;
     if (client == null) return false;
 
-    final tables = ['customers', 'transactions', 'settings'];
     final syncStartTime = DateTime.now().toUtc().toIso8601String();
 
-    for (final table in tables) {
-      try {
-        final lastSyncedAt = await _localDb.getLastSyncedAt(table) ??
-            DateTime.fromMillisecondsSinceEpoch(0).toUtc().toIso8601String();
+    try {
+      final pendingOps = await _localDb.getPendingOps();
 
-        final response = await client
-            .from(table)
-            .select()
-            .eq('user_id', user.id)
-            .gt('updated_at', lastSyncedAt)
-            .order('updated_at', ascending: true);
+      // 1. Reconcile Customers
+      final customersRes = await client
+          .from('customers')
+          .select()
+          .eq('user_id', user.id);
+      final remoteCustomers = (customersRes as List<dynamic>).cast<Map<String, dynamic>>();
+      final remoteCustomerIds = <String>{};
 
-        final rows = response as List<dynamic>;
-        for (final item in rows) {
-          final row = item as Map<String, dynamic>;
-          if (table == 'customers') {
-            await _localDb.upsertCustomer(row);
-          } else if (table == 'transactions') {
-            await _localDb.upsertTransaction(row);
-          } else if (table == 'settings') {
-            await _localDb.upsertSettings(row);
-          }
-        }
-
-        // Update last_synced_at after successful pull
-        await _localDb.setLastSyncedAt(table, syncStartTime);
-      } catch (e) {
-        debugPrint('[SyncService] Error pulling data for $table: $e');
-        return false;
+      for (final row in remoteCustomers) {
+        final id = row['id'] as String?;
+        if (id != null) remoteCustomerIds.add(id);
+        await _localDb.upsertCustomer(row);
       }
-    }
 
-    return true;
+      final localCustomers = await _localDb.getCustomers(user.id);
+      final pendingCustomerIds = pendingOps
+          .where((op) => op['table_name'] == 'customers')
+          .map((op) => op['record_id'] as String)
+          .toSet();
+
+      for (final local in localCustomers) {
+        final id = local['id'] as String?;
+        if (id != null && !remoteCustomerIds.contains(id) && !pendingCustomerIds.contains(id)) {
+          await _localDb.deleteCustomer(id);
+        }
+      }
+
+      // 2. Reconcile Transactions
+      final txRes = await client
+          .from('transactions')
+          .select()
+          .eq('user_id', user.id);
+      final remoteTransactions = (txRes as List<dynamic>).cast<Map<String, dynamic>>();
+      final remoteTxIds = <String>{};
+
+      for (final row in remoteTransactions) {
+        final id = row['id'] as String?;
+        if (id != null) remoteTxIds.add(id);
+        await _localDb.upsertTransaction(row);
+      }
+
+      final localTx = await _localDb.getTransactions(user.id);
+      final pendingTxIds = pendingOps
+          .where((op) => op['table_name'] == 'transactions')
+          .map((op) => op['record_id'] as String)
+          .toSet();
+
+      for (final local in localTx) {
+        final id = local['id'] as String?;
+        if (id != null && !remoteTxIds.contains(id) && !pendingTxIds.contains(id)) {
+          await _localDb.deleteTransaction(id);
+        }
+      }
+
+      // 3. Reconcile Settings
+      final settingsRes = await client
+          .from('settings')
+          .select()
+          .eq('user_id', user.id)
+          .maybeSingle();
+      if (settingsRes != null) {
+        await _localDb.upsertSettings(Map<String, dynamic>.from(settingsRes));
+      }
+
+      // Update last_synced_at
+      for (final table in ['customers', 'transactions', 'settings']) {
+        await _localDb.setLastSyncedAt(table, syncStartTime);
+      }
+
+      return true;
+    } catch (e) {
+      final errorMsg = e.toString();
+      debugPrint('[SyncService] Error pulling data: $errorMsg');
+      _setError('Pull error: $errorMsg');
+      return false;
+    }
   }
 
   /// FULL SYNC: Push then pull, then notify all repositories to refresh local streams
@@ -304,6 +651,12 @@ class SyncService {
       return;
     }
 
+    final validSession = await _ensureValidSession();
+    if (!validSession) {
+      _updateStatus(SyncStatus.error);
+      return;
+    }
+
     _isSyncing = true;
     _updateStatus(SyncStatus.syncing);
 
@@ -311,16 +664,10 @@ class SyncService {
       final pushSuccess = await push();
       final pullSuccess = await pull();
 
-      // Notify repositories to refresh their streams from local DB
-      for (final callback in _refreshCallbacks) {
-        try {
-          await callback();
-        } catch (e) {
-          debugPrint('[SyncService] Error refreshing repository: $e');
-        }
-      }
+      _notifyRefresh();
 
       if (pushSuccess && pullSuccess) {
+        _setError(null);
         _updateStatus(SyncStatus.idle);
         final r = ref;
         if (r != null) {
@@ -330,7 +677,9 @@ class SyncService {
         _updateStatus(SyncStatus.error);
       }
     } catch (e) {
-      debugPrint('[SyncService] fullSync failed: $e');
+      final errorMsg = e.toString();
+      debugPrint('[SyncService] fullSync failed: $errorMsg');
+      _setError('Sync failed: $errorMsg');
       final currentOnline = await isOnline();
       _updateStatus(currentOnline ? SyncStatus.error : SyncStatus.offline);
     } finally {
@@ -552,6 +901,8 @@ class SyncService {
   }
 
   void dispose() {
+    _teardownRealtimeSubscription();
+    _authSubscription?.cancel();
     _periodicTimer?.cancel();
     _connectivitySubscription?.cancel();
     _lifecycleListener?.dispose();
