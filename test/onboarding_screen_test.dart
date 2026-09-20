@@ -13,6 +13,7 @@ import 'package:baki_khata/data/repositories/customer_repository.dart';
 import 'package:baki_khata/data/repositories/settings_repository.dart';
 import 'package:baki_khata/data/repositories/transaction_repository.dart';
 import 'package:baki_khata/data/sync/sync_service.dart';
+import 'package:baki_khata/features/auth/account_screen.dart';
 import 'package:baki_khata/features/onboarding/onboarding_screen.dart';
 
 void main() {
@@ -27,7 +28,7 @@ void main() {
     await LocalDatabase.instance.initDatabase(path: inMemoryDatabasePath);
   });
 
-  testWidgets('OnboardingScreen renders initial state with default currency symbol', (tester) async {
+  testWidgets('OnboardingScreen renders initial state with default currency symbol and auth options', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
@@ -45,6 +46,9 @@ void main() {
     expect(find.text('Currency Symbol'), findsOneWidget);
     expect(find.text('৳'), findsOneWidget);
     expect(find.text('Continue'), findsOneWidget);
+    expect(find.text('OR'), findsOneWidget);
+    expect(find.byKey(const Key('onboarding_sign_in_button')), findsOneWidget);
+    expect(find.byKey(const Key('onboarding_sign_up_button')), findsOneWidget);
   });
 
   testWidgets('Empty shop name shows validation error on Continue', (tester) async {
@@ -120,6 +124,46 @@ void main() {
     expect(mockRepo.updateCalls, equals(1));
     expect(mockRepo.updatedSettings?.shopName, equals('Bhai Bhai General Store'));
     expect(mockRepo.updatedSettings?.currencySymbol, equals('৳'));
+  });
+
+  testWidgets('Tapping Sign In navigates to AccountScreen with Sign In tab active', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const OnboardingScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('onboarding_sign_in_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AccountScreen), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Sign In'), findsOneWidget);
+    expect(find.text('Forgot password?'), findsOneWidget);
+  });
+
+  testWidgets('Tapping Sign Up navigates to AccountScreen with Create Account tab active', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const OnboardingScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('onboarding_sign_up_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AccountScreen), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Create Account'), findsOneWidget);
+    expect(find.text('Minimum 8 characters'), findsOneWidget);
   });
 }
 

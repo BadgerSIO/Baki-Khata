@@ -12,7 +12,9 @@ import 'merge_guest_data_dialog.dart';
 import 'otp_verification_screen.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
-  const AccountScreen({super.key});
+  final int initialIndex;
+
+  const AccountScreen({super.key, this.initialIndex = 0});
 
   @override
   ConsumerState<AccountScreen> createState() => _AccountScreenState();
@@ -131,13 +133,11 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
         // Always land on the Home tab, regardless of which tab was active when
         // the user opened the sign-in screen.
         ref.read(currentTabProvider.notifier).state = 0;
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).popUntil((route) => route.isFirst);
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const MainNavigationScaffold()),
-          );
-        }
+        ref.invalidate(hasLocalSettingsProvider);
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainNavigationScaffold()),
+          (route) => false,
+        );
       }
     }
   }
@@ -315,6 +315,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
 
     return DefaultTabController(
       length: 2,
+      initialIndex: widget.initialIndex,
       child: Scaffold(
         backgroundColor: const Color(0xFFF7FAF8),
         appBar: AppBar(

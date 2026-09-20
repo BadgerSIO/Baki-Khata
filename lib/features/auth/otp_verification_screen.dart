@@ -133,13 +133,11 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
     } finally {
       if (mounted) {
         ref.read(currentTabProvider.notifier).state = 0;
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).popUntil((route) => route.isFirst);
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const MainNavigationScaffold()),
-          );
-        }
+        ref.invalidate(hasLocalSettingsProvider);
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainNavigationScaffold()),
+          (route) => false,
+        );
       }
     }
   }

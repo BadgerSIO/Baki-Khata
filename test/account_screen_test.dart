@@ -80,4 +80,19 @@ void main() {
     // Verify validation message
     expect(find.text('Password must be at least 8 characters'), findsOneWidget);
   });
+
+  testWidgets('AccountScreen with initialIndex: 1 starts on Create Account tab', (tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: AccountScreen(initialIndex: 1),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(FilledButton, 'Create Account'), findsOneWidget);
+    expect(find.text('Minimum 8 characters'), findsOneWidget);
+  });
 }

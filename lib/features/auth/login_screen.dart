@@ -5,10 +5,12 @@ export 'account_screen.dart';
 
 /// Backward-compatible alias/wrapper for AccountScreen.
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  final int initialIndex;
+
+  const LoginScreen({super.key, this.initialIndex = 0});
 
   @override
   Widget build(BuildContext context) {
-    return const AccountScreen();
+    return AccountScreen(initialIndex: initialIndex);
   }
 }

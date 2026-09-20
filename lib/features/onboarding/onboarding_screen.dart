@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app.dart';
 import '../../core/theme.dart';
 import '../../data/repositories/settings_repository.dart';
+import '../auth/account_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   final VoidCallback? onContinue;
@@ -64,6 +65,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         setState(() => _isSaving = false);
       }
     }
+  }
+
+  void _navigateToAuth({int initialIndex = 0}) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AccountScreen(initialIndex: initialIndex),
+      ),
+    );
   }
 
   @override
@@ -178,6 +187,58 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Row(
+                      children: [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'OR',
+                            style: TextStyle(
+                              color: Color(0xFF78909C),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            key: const Key('onboarding_sign_in_button'),
+                            onPressed: _isSaving ? null : () => _navigateToAuth(initialIndex: 0),
+                            icon: const Icon(Icons.login_rounded, size: 18),
+                            label: const Text('Sign In'),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            key: const Key('onboarding_sign_up_button'),
+                            onPressed: _isSaving ? null : () => _navigateToAuth(initialIndex: 1),
+                            icon: const Icon(Icons.person_add_outlined, size: 18),
+                            label: const Text('Sign Up'),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
