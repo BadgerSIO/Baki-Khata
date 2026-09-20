@@ -181,11 +181,16 @@ class SyncService {
     );
   }
 
-  void _onUserSignedIn(User user) {
+  void _onUserSignedIn(User user) async {
     _updateStatus(SyncStatus.idle);
     _setupRealtimeSubscription(user.id);
     _startPeriodicSync();
-    fullSync();
+    // If guest data exists, sign-in flows handle migration then fullSync.
+    // Auto-triggering fullSync immediately would race with post-sign-in resolution.
+    final hasGuest = await hasLocalGuestData();
+    if (!hasGuest) {
+      fullSync();
+    }
   }
 
   void _onUserSignedOut() {
@@ -487,6 +492,28 @@ class SyncService {
 
         if (payload != null) {
           if (payload['user_id'] == 'local_guest' || payload['user_id'] == null) {
+            // NEVER let guest settings overwrite remote settings on Supabase
+            if (tableName == 'settings') {
+              try {
+                final existingRemote = await client
+                    .from('settings')
+                    .select('user_id')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+                if (existingRemote != null) {
+                  debugPrint(
+                    '[SyncService] Discarding guest settings pending op #$id because remote settings exist for ${user.id}',
+                  );
+                  await _localDb.deletePendingOp(id);
+                  _pendingOpFailures.remove(id);
+                  await _localDb.deleteSettings('local_guest');
+                  continue;
+                }
+              } catch (e) {
+                debugPrint('[SyncService] Failed to check remote settings during push: $e');
+              }
+            }
+
             payload = Map<String, dynamic>.from(payload);
             payload['user_id'] = user.id;
           } else if (payload['user_id'] != user.id) {
@@ -619,6 +646,7 @@ class SyncService {
           .maybeSingle();
       if (settingsRes != null) {
         await _localDb.upsertSettings(Map<String, dynamic>.from(settingsRes));
+        await _localDb.deleteSettings('local_guest');
       }
 
       // Update last_synced_at
@@ -687,11 +715,90 @@ class SyncService {
     }
   }
 
-  /// Checks if any local guest customers or transactions exist.
+  /// Checks if any local guest data (customers, transactions, or settings) exists.
   Future<bool> hasLocalGuestData() async {
+    final hasCustomerData = await hasLocalGuestCustomerData();
+    final hasSettings = await hasLocalGuestSettings();
+    return hasCustomerData || hasSettings;
+  }
+
+  /// Checks if any local guest customers or transactions exist.
+  Future<bool> hasLocalGuestCustomerData() async {
     final customers = await _localDb.getCustomers('local_guest');
     final transactions = await _localDb.getTransactions('local_guest');
     return customers.isNotEmpty || transactions.isNotEmpty;
+  }
+
+  /// Checks if local guest settings exist.
+  Future<bool> hasLocalGuestSettings() async {
+    final settings = await _localDb.getSettings('local_guest');
+    return settings != null;
+  }
+
+  /// Returns local guest settings if any.
+  Future<Map<String, dynamic>?> getLocalGuestSettings() async {
+    return await _localDb.getSettings('local_guest');
+  }
+
+  /// Returns existing remote settings for [userId] in Supabase, or null if none exist.
+  Future<Map<String, dynamic>?> getRemoteSettings(String userId) async {
+    try {
+      final client = _supabase;
+      if (client == null) return null;
+      final res = await client
+          .from('settings')
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
+      if (res != null) {
+        return Map<String, dynamic>.from(res);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('[SyncService] getRemoteSettings error: $e');
+      return null;
+    }
+  }
+
+  /// Resolves settings conflict between local guest onboarding settings and cloud account settings.
+  /// Remote cloud settings always take strict precedence over temporary local guest settings.
+  Future<void> resolveSettingsOnSignIn(String userId) async {
+    final guestSettings = await _localDb.getSettings('local_guest');
+    if (guestSettings == null) {
+      await _localDb.clearGuestSettingsPendingOps();
+      return;
+    }
+
+    final remoteSettings = await getRemoteSettings(userId);
+    if (remoteSettings != null) {
+      debugPrint(
+        '[SyncService] Remote settings exist for $userId: preserving remote shop_name "${remoteSettings['shop_name']}"',
+      );
+      await _localDb.deleteSettings('local_guest');
+      await _localDb.clearGuestSettingsPendingOps();
+      await _localDb.upsertSettings(remoteSettings);
+    } else {
+      debugPrint(
+        '[SyncService] No remote settings for $userId: adopting guest shop_name "${guestSettings['shop_name']}"',
+      );
+      final now = DateTime.now().toUtc().toIso8601String();
+      final migratedSettings = {
+        'user_id': userId,
+        'shop_name': guestSettings['shop_name'],
+        'currency_symbol': guestSettings['currency_symbol'],
+        'updated_at': now,
+      };
+      await _localDb.upsertSettings(migratedSettings);
+      await _localDb.deleteSettings('local_guest');
+      await _localDb.clearGuestSettingsPendingOps();
+      if (_supabase != null) {
+        try {
+          await _supabase.from('settings').upsert(migratedSettings);
+        } catch (e) {
+          debugPrint('[SyncService] Error upserting migrated settings: $e');
+        }
+      }
+    }
   }
 
   /// Returns count of local guest customers.

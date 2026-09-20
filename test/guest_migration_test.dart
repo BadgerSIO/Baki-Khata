@@ -6,6 +6,7 @@ import 'package:baki_khata/data/local/local_database.dart';
 import 'package:baki_khata/data/models/app_settings.dart';
 import 'package:baki_khata/data/models/customer.dart';
 import 'package:baki_khata/data/models/transaction.dart';
+import 'package:baki_khata/data/repositories/settings_repository.dart';
 import 'package:baki_khata/data/sync/sync_service.dart';
 
 void main() {
@@ -131,6 +132,40 @@ void main() {
       await LocalDatabase.instance.deleteSettings(CurrentUserService.guestSentinel);
       expect(await LocalDatabase.instance.getSettings(CurrentUserService.guestSentinel), isNull);
     });
+
+    test('clearGuestSettingsPendingOps removes only settings ops with local_guest', () async {
+      await LocalDatabase.instance.insertPendingOp(
+        tableName: 'customers',
+        recordId: 'cust-1',
+        opType: 'insert',
+        payload: jsonEncode({'id': 'cust-1', 'user_id': 'local_guest'}),
+      );
+
+      await LocalDatabase.instance.insertPendingOp(
+        tableName: 'settings',
+        recordId: 'local_guest',
+        opType: 'update',
+        payload: jsonEncode({'user_id': 'local_guest', 'shop_name': 'Guest Shop'}),
+      );
+
+      await LocalDatabase.instance.insertPendingOp(
+        tableName: 'settings',
+        recordId: 'real_user',
+        opType: 'update',
+        payload: jsonEncode({'user_id': 'real_user', 'shop_name': 'Real Shop'}),
+      );
+
+      var ops = await LocalDatabase.instance.getPendingOps();
+      expect(ops.length, equals(3));
+
+      await LocalDatabase.instance.clearGuestSettingsPendingOps();
+
+      ops = await LocalDatabase.instance.getPendingOps();
+      expect(ops.length, equals(2));
+      expect(ops.any((op) => op['table_name'] == 'settings' && op['record_id'] == 'local_guest'), isFalse);
+      expect(ops.any((op) => op['table_name'] == 'customers' && op['record_id'] == 'cust-1'), isTrue);
+      expect(ops.any((op) => op['table_name'] == 'settings' && op['record_id'] == 'real_user'), isTrue);
+    });
   });
 
   group('SyncService Guest Migration Logic', () {
@@ -205,5 +240,177 @@ void main() {
         expect(op['payload'].toString().contains('local_guest'), isFalse);
       }
     });
+
+    test('hasLocalGuestData detects settings while hasLocalGuestCustomerData only checks customers/transactions', () async {
+      final syncService = SyncService();
+      expect(await syncService.hasLocalGuestData(), isFalse);
+      expect(await syncService.hasLocalGuestCustomerData(), isFalse);
+      expect(await syncService.hasLocalGuestSettings(), isFalse);
+
+      // Add only guest settings
+      await LocalDatabase.instance.upsertSettings(AppSettings(
+        userId: CurrentUserService.guestSentinel,
+        shopName: 'Incognito Shop',
+        currencySymbol: '৳',
+        updatedAt: DateTime.now().toUtc(),
+      ).toMap());
+
+      expect(await syncService.hasLocalGuestData(), isTrue);
+      expect(await syncService.hasLocalGuestSettings(), isTrue);
+      expect(await syncService.hasLocalGuestCustomerData(), isFalse);
+
+      // Add a guest customer
+      await LocalDatabase.instance.upsertCustomer(Customer(
+        id: 'cust-1',
+        userId: CurrentUserService.guestSentinel,
+        name: 'Guest Customer',
+        createdAt: DateTime.now().toUtc(),
+        updatedAt: DateTime.now().toUtc(),
+      ).toMap());
+
+      expect(await syncService.hasLocalGuestCustomerData(), isTrue);
+    });
+
+    test('resolveSettingsOnSignIn preserves remote settings and discards local guest settings', () async {
+      final now = DateTime.now().toUtc();
+      // Setup local guest settings and a guest pending op
+      await LocalDatabase.instance.upsertSettings(AppSettings(
+        userId: CurrentUserService.guestSentinel,
+        shopName: 'Incognito Temporary Shop',
+        currencySymbol: '৳',
+        updatedAt: now,
+      ).toMap());
+
+      await LocalDatabase.instance.insertPendingOp(
+        tableName: 'settings',
+        recordId: 'local_guest',
+        opType: 'update',
+        payload: jsonEncode({'user_id': 'local_guest', 'shop_name': 'Incognito Temporary Shop'}),
+      );
+
+      final syncService = TestSyncServiceWithRemoteSettings(
+        remoteSettingsMap: {
+          'user-existing-1': {
+            'user_id': 'user-existing-1',
+            'shop_name': 'Original Cloud Shop',
+            'currency_symbol': '৳',
+            'updated_at': now.toIso8601String(),
+          },
+        },
+      );
+
+      await syncService.resolveSettingsOnSignIn('user-existing-1');
+
+      // 1. Guest settings must be deleted
+      expect(await LocalDatabase.instance.getSettings(CurrentUserService.guestSentinel), isNull);
+
+      // 2. Guest settings pending op must be removed
+      final ops = await LocalDatabase.instance.getPendingOps();
+      expect(ops.any((op) => op['table_name'] == 'settings' && op['record_id'] == 'local_guest'), isFalse);
+
+      // 3. Remote settings must be loaded for the user
+      final userSettings = await LocalDatabase.instance.getSettings('user-existing-1');
+      expect(userSettings, isNotNull);
+      expect(userSettings!['shop_name'], equals('Original Cloud Shop'));
+    });
+
+    test('resolveSettingsOnSignIn migrates guest settings when user has no remote settings', () async {
+      final now = DateTime.now().toUtc();
+      // Setup local guest settings
+      await LocalDatabase.instance.upsertSettings(AppSettings(
+        userId: CurrentUserService.guestSentinel,
+        shopName: 'Brand New Shop',
+        currencySymbol: '৳',
+        updatedAt: now,
+      ).toMap());
+
+      final syncService = TestSyncServiceWithRemoteSettings(
+        remoteSettingsMap: {}, // No remote settings
+      );
+
+      await syncService.resolveSettingsOnSignIn('user-fresh-2');
+
+      // 1. Guest settings must be deleted
+      expect(await LocalDatabase.instance.getSettings(CurrentUserService.guestSentinel), isNull);
+
+      // 2. Settings must be assigned to new user
+      final userSettings = await LocalDatabase.instance.getSettings('user-fresh-2');
+      expect(userSettings, isNotNull);
+      expect(userSettings!['shop_name'], equals('Brand New Shop'));
+    });
   });
+
+  group('SettingsRepository Guest Settings Isolation', () {
+    test('updateSettings for guest saves locally only and does NOT enqueue pending_ops', () async {
+      final mockUserService = MockCurrentUserService(CurrentUserService.guestSentinel);
+      final syncService = SyncService();
+      final repo = SettingsRepository(
+        localDb: LocalDatabase.instance,
+        syncService: syncService,
+        currentUserService: mockUserService,
+      );
+
+      await repo.updateSettings(
+        shopName: 'Guest Shop Name',
+        currencySymbol: '৳',
+      );
+
+      // Local DB has the settings
+      final settings = await LocalDatabase.instance.getSettings(CurrentUserService.guestSentinel);
+      expect(settings, isNotNull);
+      expect(settings!['shop_name'], equals('Guest Shop Name'));
+
+      // Pending ops must be EMPTY
+      final ops = await LocalDatabase.instance.getPendingOps();
+      expect(ops, isEmpty);
+    });
+
+    test('updateSettings for authenticated user enqueues pending_ops', () async {
+      final mockUserService = MockCurrentUserService('auth-user-123');
+      final syncService = SyncService();
+      final repo = SettingsRepository(
+        localDb: LocalDatabase.instance,
+        syncService: syncService,
+        currentUserService: mockUserService,
+      );
+
+      await repo.updateSettings(
+        shopName: 'Real Shop Name',
+        currencySymbol: '৳',
+      );
+
+      // Local DB has the settings
+      final settings = await LocalDatabase.instance.getSettings('auth-user-123');
+      expect(settings, isNotNull);
+      expect(settings!['shop_name'], equals('Real Shop Name'));
+
+      // Pending ops must have the update
+      final ops = await LocalDatabase.instance.getPendingOps();
+      expect(ops.length, equals(1));
+      expect(ops.first['table_name'], equals('settings'));
+      expect(ops.first['record_id'], equals('auth-user-123'));
+    });
+  });
+}
+
+class MockCurrentUserService extends CurrentUserService {
+  final String _userId;
+  MockCurrentUserService(this._userId);
+
+  @override
+  String get effectiveUserId => _userId;
+}
+
+class TestSyncServiceWithRemoteSettings extends SyncService {
+  final Map<String, Map<String, dynamic>> remoteSettingsMap;
+
+  TestSyncServiceWithRemoteSettings({
+    required this.remoteSettingsMap,
+    super.localDb,
+  });
+
+  @override
+  Future<Map<String, dynamic>?> getRemoteSettings(String userId) async {
+    return remoteSettingsMap[userId];
+  }
 }

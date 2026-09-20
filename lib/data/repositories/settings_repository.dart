@@ -88,19 +88,20 @@ class SettingsRepository {
     // 1. Write to local SQLite table
     await _localDb.upsertSettings(settings.toMap());
 
-    // 2. Insert row into pending_ops
-    await _localDb.insertPendingOp(
-      tableName: 'settings',
-      recordId: settings.userId,
-      opType: 'update',
-      payload: jsonEncode(settings.toJson()),
-    );
+    // 2. Insert row into pending_ops and sync only if user is authenticated
+    if (settings.userId.isNotEmpty &&
+        settings.userId != CurrentUserService.guestSentinel) {
+      await _localDb.insertPendingOp(
+        tableName: 'settings',
+        recordId: settings.userId,
+        opType: 'update',
+        payload: jsonEncode(settings.toJson()),
+      );
+      syncService.pushNow();
+    }
 
     // 3. Push new settings to stream
     _controller.add(settings);
-
-    // 4. Fire-and-forget sync call
-    syncService.pushNow();
 
     return settings;
   }

@@ -469,6 +469,22 @@ class LocalDatabase {
     await db!.delete('pending_ops', where: 'payload LIKE ?', whereArgs: ['%local_guest%']);
   }
 
+  Future<void> clearGuestSettingsPendingOps() async {
+    if (kIsWeb) {
+      _webStore['pending_ops']!.removeWhere((item) =>
+          item['table_name'] == 'settings' &&
+          (item['payload'] as String? ?? '').contains('local_guest'));
+      await _saveWebStore();
+      return;
+    }
+    final db = await database;
+    await db!.delete(
+      'pending_ops',
+      where: "table_name = 'settings' AND payload LIKE ?",
+      whereArgs: ['%local_guest%'],
+    );
+  }
+
   // --- Sync Meta Operations ---
 
   Future<String?> getLastSyncedAt(String tableName) async {

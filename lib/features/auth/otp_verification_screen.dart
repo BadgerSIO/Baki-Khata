@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../app.dart';
 import '../../core/supabase_client.dart';
 import '../../core/theme.dart';
+import '../../data/repositories/settings_repository.dart';
 import '../../data/sync/sync_service.dart';
 import 'merge_guest_data_dialog.dart';
 
@@ -90,9 +91,14 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
 
     try {
       final syncService = ref.read(syncServiceProvider);
-      final hasGuest = await syncService.hasLocalGuestData();
 
-      if (hasGuest) {
+      // 1. Resolve settings first: remote cloud settings always take strict precedence
+      await syncService.resolveSettingsOnSignIn(userId);
+
+      // 2. Check if local guest customer or transaction data exists
+      final hasCustomerData = await syncService.hasLocalGuestCustomerData();
+
+      if (hasCustomerData) {
         final remoteCount = await syncService.getRemoteCustomerCount(userId);
         if (remoteCount > 0) {
           final guestCustomers = await syncService.getLocalGuestCustomerCount();
@@ -125,9 +131,12 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
         }
       } else {
         if (mounted) setState(() => _isMigrating = true);
+        // Clean up any remaining guest data/pending ops
+        await syncService.discardGuestData();
       }
 
       await syncService.fullSync();
+      await ref.read(settingsRepositoryProvider).refresh();
     } catch (e) {
       debugPrint('[OtpVerificationScreen] Post-verification error: $e');
     } finally {
