@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Baki Khata (Debug)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--dart-define=SUPABASE_URL=https://gjtlkbgopdrzdafnpymh.supabase.co",
+        "--dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqdGxrYmdvcGRyemRhZm5weW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2OTkwNjEsImV4cCI6MjEwNTI3NTA2MX0.OQDd2VLg7ditVs1qzSzme3JrmL9Garm5CRbSMal4YbI"
+      ]
+    }
+  ]
+}
