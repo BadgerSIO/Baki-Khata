@@ -96,15 +96,7 @@ class HomeScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           children: [
-            // 1. Quick Actions Row
-            _QuickActionsRow(
-              onAddCustomer: () => showAddCustomerDialog(context, ref),
-              onAddBaki: () => showAddBakiDialog(context, ref),
-              onRecordPayment: () => showRecordPaymentDialog(context, ref),
-            ),
-            const SizedBox(height: 16),
-
-            // 2. Overview Stat Cards (5 Cards)
+            // 1. Overview Stat Cards (5 Cards)
             _buildStatCards(
               context: context,
               ref: ref,
@@ -114,9 +106,17 @@ class HomeScreen extends ConsumerWidget {
               collectedToday: formatMoney(collectedToday),
               totalCollectedAllTime: formatMoney(totalCollectedAllTime),
             ),
+            const SizedBox(height: 16),
+
+            // 2. Quick Actions Row
+            _QuickActionsRow(
+              onAddCustomer: () => showAddCustomerDialog(context, ref),
+              onAddBaki: () => showAddBakiDialog(context, ref),
+              onRecordPayment: () => showRecordPaymentDialog(context, ref),
+            ),
             const SizedBox(height: 20),
 
-            // 5. Recent Transactions Header & List
+            // 3. Recent Transactions Header & List
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
