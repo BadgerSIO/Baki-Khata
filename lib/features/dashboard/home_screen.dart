@@ -82,7 +82,12 @@ class HomeScreen extends ConsumerWidget {
     final customerNameMap = {for (final c in customers) c.id: c.name};
 
     // 5 Most Recent Transactions
-    final recentTransactions = transactions.take(5).toList();
+    final sortedRecent = [...transactions]..sort((a, b) {
+        final cmp = b.date.compareTo(a.date);
+        if (cmp != 0) return cmp;
+        return b.createdAt.compareTo(a.createdAt);
+      });
+    final recentTransactions = sortedRecent.take(5).toList();
 
     final theme = Theme.of(context);
 

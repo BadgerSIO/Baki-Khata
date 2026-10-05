@@ -321,6 +321,50 @@ void main() {
 
       expect(find.text('No Payment Transactions'), findsOneWidget);
     });
+
+    testWidgets('Date section headers group transactions by day and adapt to category filters', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            transactionsStreamProvider.overrideWith((ref) => Stream.value([
+              txOldBaki,
+              txMidPayment,
+              txNewBaki,
+            ])),
+            customersStreamProvider.overrideWith((ref) => Stream.value([
+              testCustomer1,
+              testCustomer2,
+            ])),
+            settingsStreamProvider.overrideWith((ref) => Stream.value(testSettings)),
+            transactionRepositoryProvider.overrideWithValue(_MockTransactionRepository()),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: const HistoryScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // In All tab: TODAY and YESTERDAY headers are shown
+      expect(find.text('TODAY'), findsOneWidget);
+      expect(find.text('YESTERDAY'), findsOneWidget);
+
+      // Filter to Payment: txMidPayment was Yesterday, so YESTERDAY is shown, TODAY is not
+      await tester.tap(find.text('Payment (1)'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('YESTERDAY'), findsOneWidget);
+      expect(find.text('TODAY'), findsNothing);
+
+      // Filter to Baki: txNewBaki was Today, so TODAY is shown, YESTERDAY is not
+      await tester.tap(find.text('Baki (2)'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('TODAY'), findsOneWidget);
+      expect(find.text('YESTERDAY'), findsNothing);
+    });
   });
 }
 

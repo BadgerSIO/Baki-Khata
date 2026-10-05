@@ -141,59 +141,72 @@ class CustomerDetailsScreen extends ConsumerWidget {
               await ref.read(customerRepositoryProvider).refresh();
               await ref.read(transactionRepositoryProvider).refresh();
             },
-            child: ListView(
-              padding: const EdgeInsets.only(bottom: 40),
-              children: [
-                // 1. Header Card
-                _buildHeaderCard(context, ref, customer, theme),
-
-                // 2. Balance Summary Card
-                _buildBalanceSummaryCard(
-                  balanceStatusLabel: balanceStatusLabel,
-                  balanceText: balanceText,
-                  balanceTextColor: balanceTextColor,
-                  balanceBgColor: balanceBgColor,
-                ),
-
-                // 3. Action Buttons: Add Baki & Record Payment
-                _buildActionButtons(context, ref, customer),
-
-                // 4. Transaction History Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(
                     children: [
-                      Text(
-                        'Transaction History',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      // 1. Header Card
+                      _buildHeaderCard(context, ref, customer, theme),
+
+                      // 2. Balance Summary Card
+                      _buildBalanceSummaryCard(
+                        balanceStatusLabel: balanceStatusLabel,
+                        balanceText: balanceText,
+                        balanceTextColor: balanceTextColor,
+                        balanceBgColor: balanceBgColor,
                       ),
-                      Text(
-                        '${sortedTransactions.length} records',
-                        style: const TextStyle(
-                          color: Color(0xFF78909C),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+
+                      // 3. Action Buttons: Add Baki & Record Payment
+                      _buildActionButtons(context, ref, customer),
+
+                      // 4. Transaction History Header
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Transaction History',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '${sortedTransactions.length} records',
+                              style: const TextStyle(
+                                color: Color(0xFF78909C),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                // 5. Transaction History List
+                // 5. Transaction History List (Virtualized)
                 if (sortedTransactions.isEmpty)
-                  _buildEmptyTransactionsCard()
+                  SliverToBoxAdapter(
+                    child: _buildEmptyTransactionsCard(),
+                  )
                 else
-                  ...sortedTransactions.map((tx) {
-                    return _buildTransactionCard(
-                      context,
-                      ref,
-                      tx,
-                      currency,
-                    );
-                  }),
+                  SliverList.builder(
+                    itemCount: sortedTransactions.length,
+                    itemBuilder: (context, index) {
+                      return _buildTransactionCard(
+                        context,
+                        ref,
+                        sortedTransactions[index],
+                        currency,
+                      );
+                    },
+                  ),
+                const SliverPadding(
+                  padding: EdgeInsets.only(bottom: 40),
+                ),
               ],
             ),
           ),

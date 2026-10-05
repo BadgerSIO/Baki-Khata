@@ -87,6 +87,21 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             }
           }).toList();
 
+          // Group chronologically by date
+          final List<_HistoryListItem> items = [];
+          final Map<String, List<AppTransaction>> groups = {};
+          for (final tx in filtered) {
+            final header = _getDateHeader(tx.date);
+            groups.putIfAbsent(header, () => []).add(tx);
+          }
+
+          for (final entry in groups.entries) {
+            items.add(_DateHeaderItem(entry.key, entry.value.length));
+            for (final tx in entry.value) {
+              items.add(_TransactionItem(tx));
+            }
+          }
+
           return Column(
             children: [
               // Top Filter Chips Bar
@@ -105,22 +120,88 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.only(top: 4, bottom: 80),
-                        itemCount: filtered.length,
+                        itemCount: items.length,
                         itemBuilder: (context, index) {
-                          final tx = filtered[index];
-                          final customer = customerMap[tx.customerId];
-                          return _buildTransactionCard(
-                            context: context,
-                            tx: tx,
-                            customer: customer,
-                            currency: currency,
-                          );
+                          final item = items[index];
+                          if (item is _DateHeaderItem) {
+                            return _buildDateHeader(item.title, item.count);
+                          } else if (item is _TransactionItem) {
+                            final tx = item.tx;
+                            final customer = customerMap[tx.customerId];
+                            return _buildTransactionCard(
+                              context: context,
+                              tx: tx,
+                              customer: customer,
+                              currency: currency,
+                            );
+                          }
+                          return const SizedBox.shrink();
                         },
                       ),
               ),
             ],
           );
         },
+      ),
+    );
+  }
+
+  String _getDateHeader(DateTime date) {
+    final now = DateTime.now();
+    final local = date.toLocal();
+    final today = DateTime(now.year, now.month, now.day);
+    final txDay = DateTime(local.year, local.month, local.day);
+    final difference = today.difference(txDay).inDays;
+
+    if (difference == 0) {
+      return 'Today';
+    } else if (difference == 1) {
+      return 'Yesterday';
+    } else if (local.year == now.year) {
+      return DateFormat('MMMM d').format(local);
+    } else {
+      return DateFormat('MMMM d, yyyy').format(local);
+    }
+  }
+
+  Widget _buildDateHeader(String title, int count) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      child: Row(
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.8,
+              color: Color(0xFF60706B),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE2E8E5),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '$count',
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF42524D),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Divider(
+              color: Color(0xFFE0E5E2),
+              thickness: 1,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -502,5 +583,20 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       }
     }
   }
+}
+
+sealed class _HistoryListItem {}
+
+class _DateHeaderItem extends _HistoryListItem {
+  final String title;
+  final int count;
+
+  _DateHeaderItem(this.title, this.count);
+}
+
+class _TransactionItem extends _HistoryListItem {
+  final AppTransaction tx;
+
+  _TransactionItem(this.tx);
 }
 
