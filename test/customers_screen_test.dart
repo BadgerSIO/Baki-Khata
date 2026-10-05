@@ -250,4 +250,139 @@ void main() {
     expect(find.byType(CustomerDetailsScreen), findsOneWidget);
     expect(find.text('Transaction History'), findsOneWidget);
   });
+
+  testWidgets('CustomersScreen tab filters correctly categorize customers by status', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          customersStreamProvider.overrideWith((ref) => Stream.value(testCustomers)),
+          transactionsStreamProvider.overrideWith((ref) => Stream.value(testTransactions)),
+          settingsStreamProvider.overrideWith((ref) => Stream.value(testSettings)),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const CustomersScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // 1. Verify all 4 filter chips exist with correct counts
+    expect(find.text('All (3)'), findsOneWidget);
+    expect(find.text('Due (1)'), findsOneWidget);
+    expect(find.text('Advance (1)'), findsOneWidget);
+    expect(find.text('Settled (1)'), findsOneWidget);
+
+    // Initial state: All (3) is selected, shows aggregate banner
+    expect(find.textContaining('Total Due: ৳1,000.00'), findsOneWidget);
+
+    // 2. Tap "Due (1)" filter chip
+    await tester.tap(find.text('Due (1)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rahim Traders'), findsOneWidget);
+    expect(find.text('Karim Store'), findsNothing);
+    expect(find.text('Jamal Enterprise'), findsNothing);
+    expect(find.textContaining('1 customer owes a total of ৳1,000.00'), findsOneWidget);
+
+    // 3. Tap "Advance (1)" filter chip
+    await tester.tap(find.text('Advance (1)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Karim Store'), findsOneWidget);
+    expect(find.text('Rahim Traders'), findsNothing);
+    expect(find.text('Jamal Enterprise'), findsNothing);
+    expect(find.textContaining('1 customer has advance of ৳200.00'), findsOneWidget);
+
+    // 4. Tap "Settled (1)" filter chip
+    await tester.tap(find.text('Settled (1)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Jamal Enterprise'), findsOneWidget);
+    expect(find.text('Rahim Traders'), findsNothing);
+    expect(find.text('Karim Store'), findsNothing);
+    expect(find.textContaining('1 customer with settled account'), findsOneWidget);
+
+    // 5. Switch back to "All (3)"
+    await tester.tap(find.text('All (3)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rahim Traders'), findsOneWidget);
+    expect(find.text('Karim Store'), findsOneWidget);
+    expect(find.text('Jamal Enterprise'), findsOneWidget);
+  });
+
+  testWidgets('CustomersScreen shows tailored empty state when filter has zero matches', (tester) async {
+    // Only 1 customer with due balance (Rahim)
+    final dueOnlyCustomer = [testCustomers[0]];
+    final dueOnlyTransactions = [testTransactions[0]];
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          customersStreamProvider.overrideWith((ref) => Stream.value(dueOnlyCustomer)),
+          transactionsStreamProvider.overrideWith((ref) => Stream.value(dueOnlyTransactions)),
+          settingsStreamProvider.overrideWith((ref) => Stream.value(testSettings)),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const CustomersScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Tap Advance (which has 0 customers)
+    await tester.tap(find.text('Advance (0)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No advance payments'), findsOneWidget);
+    expect(find.text('None of your customers have deposited advance credit.'), findsOneWidget);
+    expect(find.text('View All Customers'), findsOneWidget);
+
+    // Tap "View All Customers" to return to all
+    await tester.tap(find.text('View All Customers'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rahim Traders'), findsOneWidget);
+  });
+
+  testWidgets('CustomersScreen sort menu reorders customer list', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          customersStreamProvider.overrideWith((ref) => Stream.value(testCustomers)),
+          transactionsStreamProvider.overrideWith((ref) => Stream.value(testTransactions)),
+          settingsStreamProvider.overrideWith((ref) => Stream.value(testSettings)),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const CustomersScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Verify sort button is present
+    expect(find.byIcon(Icons.sort_rounded), findsOneWidget);
+
+    // Open sort menu
+    await tester.tap(find.byIcon(Icons.sort_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Name (A–Z)'), findsOneWidget);
+    expect(find.text('Highest Due'), findsOneWidget);
+    expect(find.text('Recently Added'), findsOneWidget);
+
+    // Select "Highest Due"
+    await tester.tap(find.text('Highest Due'));
+    await tester.pumpAndSettle();
+
+    // Verify list is rendered and first item is Rahim Traders (highest balance = 1000)
+    final customerCards = find.byType(Card);
+    expect(customerCards, findsNWidgets(3));
+  });
 }

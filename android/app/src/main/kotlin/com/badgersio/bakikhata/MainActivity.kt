@@ -1,4 +1,4 @@
-package com.example.baki_khata
+package com.badgersio.bakikhata
 
 import io.flutter.embedding.android.FlutterActivity
 
