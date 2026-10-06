@@ -520,8 +520,56 @@ class AppLocalizationsBn extends AppLocalizations {
       'অ্যাকাউন্ট তৈরি করার মাধ্যমে আপনি আমাদের ব্যবহারের শর্তাবলী ও গোপনীয়তা নীতি মেনে নিচ্ছেন।';
 
   @override
-  String get trackCreditTagline => 'সহজে বাকি ও জমার ডিজিটাল হিসাব রাখুন';
+  String get deleteTransaction => 'লেনদেন ডিলিট করুন';
 
   @override
-  String get deleteTransaction => 'লেনদেন ডিলিট করুন';
+  String get digitalVoucher => 'ডিজিটাল ভাউচার / ক্যাশ মেমো';
+
+  @override
+  String get voucherNumber => 'চালান নং';
+
+  @override
+  String get sendOnWhatsApp => 'WhatsApp-এ পাঠান';
+
+  @override
+  String get sendImage => 'ইমেজ পাঠান';
+
+  @override
+  String get sendText => 'টেক্সট পাঠান';
+
+  @override
+  String get previousDue => 'পূর্বের বাকি';
+
+  @override
+  String get currentAmount => 'বর্তমান চালান';
+
+  @override
+  String get newTotalDue => 'বর্তমান মোট বাকি';
+
+  @override
+  String get addItem => 'আইটেম যোগ করুন';
+
+  @override
+  String get itemName => 'পণ্যের নাম';
+
+  @override
+  String get quantity => 'পরিমাণ';
+
+  @override
+  String get shopPhone => 'দোকানের ফোন নম্বর';
+
+  @override
+  String get shopAddress => 'দোকানের ঠিকানা';
+
+  @override
+  String get autoShowReceipt => 'স্বয়ংক্রিয় ভাউচার প্রদর্শন';
+
+  @override
+  String get viewVoucher => 'ভাউচার দেখুন';
+
+  @override
+  String get saveImage => 'ইমেজ সেভ';
+
+  @override
+  String get trackCreditTagline => 'সহজ উপায়ে গ্রাহকের বাকি হিসাব রাখুন';
 }

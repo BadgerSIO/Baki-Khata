@@ -84,7 +84,7 @@ class LocalDatabase {
     if (path != null) {
       _database = await openDatabase(
         path,
-        version: 2,
+        version: 3,
         onCreate: _createDB,
         onUpgrade: _onUpgrade,
       );
@@ -94,7 +94,7 @@ class LocalDatabase {
     final fullPath = p.join(dbPath, 'baki_khata.db');
     _database = await openDatabase(
       fullPath,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -107,7 +107,7 @@ class LocalDatabase {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -144,7 +144,10 @@ class LocalDatabase {
       CREATE TABLE settings (
         user_id TEXT PRIMARY KEY,
         shop_name TEXT,
+        shop_phone TEXT,
+        shop_address TEXT,
         currency_symbol TEXT,
+        auto_show_receipt INTEGER DEFAULT 1,
         updated_at TEXT
       )
     ''');
@@ -189,6 +192,17 @@ class LocalDatabase {
           last_synced_at TEXT
         )
       ''');
+    }
+    if (oldVersion < 3) {
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN shop_phone TEXT');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN shop_address TEXT');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN auto_show_receipt INTEGER DEFAULT 1');
+      } catch (_) {}
     }
   }
 

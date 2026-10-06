@@ -30,7 +30,10 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _shopNameController = TextEditingController();
+  final _shopPhoneController = TextEditingController();
+  final _shopAddressController = TextEditingController();
   final _currencyController = TextEditingController();
+  bool _autoShowReceipt = true;
 
   bool _initialized = false;
   bool _isEditing = false;
@@ -40,6 +43,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void dispose() {
     _shopNameController.dispose();
+    _shopPhoneController.dispose();
+    _shopAddressController.dispose();
     _currencyController.dispose();
     super.dispose();
   }
@@ -47,11 +52,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _populate(AppSettings settings) {
     if (!_initialized) {
       _shopNameController.text = settings.shopName;
+      _shopPhoneController.text = settings.shopPhone ?? '';
+      _shopAddressController.text = settings.shopAddress ?? '';
       _currencyController.text = settings.currencySymbol;
+      _autoShowReceipt = settings.autoShowReceipt;
       _initialized = true;
     } else if (!_isEditing) {
       _shopNameController.text = settings.shopName;
+      _shopPhoneController.text = settings.shopPhone ?? '';
+      _shopAddressController.text = settings.shopAddress ?? '';
       _currencyController.text = settings.currencySymbol;
+      _autoShowReceipt = settings.autoShowReceipt;
     }
   }
 
@@ -59,7 +70,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final settings = ref.read(settingsStreamProvider).value;
     if (settings != null) {
       _shopNameController.text = settings.shopName;
+      _shopPhoneController.text = settings.shopPhone ?? '';
+      _shopAddressController.text = settings.shopAddress ?? '';
       _currencyController.text = settings.currencySymbol;
+      _autoShowReceipt = settings.autoShowReceipt;
     }
     setState(() => _isEditing = true);
   }
@@ -69,7 +83,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final settings = ref.read(settingsStreamProvider).value;
     if (settings != null) {
       _shopNameController.text = settings.shopName;
+      _shopPhoneController.text = settings.shopPhone ?? '';
+      _shopAddressController.text = settings.shopAddress ?? '';
       _currencyController.text = settings.currencySymbol;
+      _autoShowReceipt = settings.autoShowReceipt;
     }
     setState(() => _isEditing = false);
   }
@@ -82,15 +99,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _updateAutoShowReceipt(bool val) async {
+    setState(() => _autoShowReceipt = val);
+    final settings = ref.read(settingsStreamProvider).value;
+    if (settings != null) {
+      await ref.read(settingsRepositoryProvider).updateSettings(
+            shopName: settings.shopName,
+            currencySymbol: settings.currencySymbol,
+            shopPhone: settings.shopPhone,
+            shopAddress: settings.shopAddress,
+            autoShowReceipt: val,
+          );
+    }
+  }
+
   Future<bool> _saveSettings({bool showFeedback = false}) async {
     if (!mounted) return false;
     setState(() => _isSaving = true);
     try {
       final name = _shopNameController.text.trim();
+      final phone = _shopPhoneController.text.trim();
+      final addr = _shopAddressController.text.trim();
       final curr = _currencyController.text.trim();
       await ref.read(settingsRepositoryProvider).updateSettings(
             shopName: name.isEmpty ? 'My Shop' : name,
             currencySymbol: curr.isEmpty ? '৳' : curr,
+            shopPhone: phone.isEmpty ? null : phone,
+            shopAddress: addr.isEmpty ? null : addr,
+            autoShowReceipt: _autoShowReceipt,
           );
       if (showFeedback && mounted) {
         final l10n = AppLocalizations.of(context);
@@ -553,6 +589,112 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
+                              Icons.phone_outlined,
+                              size: 20,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  currentLocale.languageCode == 'bn' ? 'দোকানের ফোন নম্বর' : 'Shop Phone',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF78909C),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _shopPhoneController.text.isEmpty
+                                      ? (currentLocale.languageCode == 'bn' ? 'যুক্ত করা নেই' : 'Not set')
+                                      : _shopPhoneController.text,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: _shopPhoneController.text.isEmpty
+                                        ? const Color(0xFF90A4AE)
+                                        : const Color(0xFF191C1B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F4F2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.location_on_outlined,
+                              size: 20,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  currentLocale.languageCode == 'bn' ? 'দোকানের ঠিকানা' : 'Shop Address',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF78909C),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _shopAddressController.text.isEmpty
+                                      ? (currentLocale.languageCode == 'bn' ? 'যুক্ত করা নেই' : 'Not set')
+                                      : _shopAddressController.text,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: _shopAddressController.text.isEmpty
+                                        ? const Color(0xFF90A4AE)
+                                        : const Color(0xFF191C1B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F4F2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
                               Icons.currency_exchange_rounded,
                               size: 20,
                               color: AppColors.primary,
@@ -588,6 +730,62 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F4F2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.receipt_long_rounded,
+                              size: 20,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  currentLocale.languageCode == 'bn'
+                                      ? 'স্বয়ংক্রিয় ভাউচার প্রদর্শন'
+                                      : 'Auto-show Voucher',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF191C1B),
+                                  ),
+                                ),
+                                Text(
+                                  currentLocale.languageCode == 'bn'
+                                      ? 'লেনদেন সেভের পর ডিজিটাল রসিদ প্রদর্শন করবে'
+                                      : 'Displays receipt memo immediately after save',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF78909C),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: _autoShowReceipt,
+                            onChanged: _updateAutoShowReceipt,
+                            activeThumbColor: AppColors.primary,
+                          ),
+                        ],
+                      ),
+                    ),
                   ] else ...[
                     // Edit Mode Form Fields
                     TextFormField(
@@ -598,7 +796,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         prefixIcon: const Icon(Icons.storefront_rounded),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _shopPhoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        labelText: currentLocale.languageCode == 'bn' ? 'দোকানের ফোন নম্বর' : 'Shop Phone',
+                        hintText: 'e.g. 01712-345678',
+                        prefixIcon: const Icon(Icons.phone_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _shopAddressController,
+                      decoration: InputDecoration(
+                        labelText: currentLocale.languageCode == 'bn' ? 'দোকানের ঠিকানা' : 'Shop Address',
+                        hintText: 'e.g. Shop 12, New Market, Dhaka',
+                        prefixIcon: const Icon(Icons.location_on_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
                     TextFormField(
                       controller: _currencyController,
                       decoration: InputDecoration(

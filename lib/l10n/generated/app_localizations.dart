@@ -1064,17 +1064,113 @@ abstract class AppLocalizations {
   /// **'By creating an account, you agree to our Terms of Service and Privacy Policy.'**
   String get termsNotice;
 
-  /// No description provided for @trackCreditTagline.
-  ///
-  /// In en, this message translates to:
-  /// **'Track customer credit, the simple way'**
-  String get trackCreditTagline;
-
   /// No description provided for @deleteTransaction.
   ///
   /// In en, this message translates to:
   /// **'Delete Transaction'**
   String get deleteTransaction;
+
+  /// No description provided for @digitalVoucher.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital Voucher / Cash Memo'**
+  String get digitalVoucher;
+
+  /// No description provided for @voucherNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Memo No.'**
+  String get voucherNumber;
+
+  /// No description provided for @sendOnWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Send on WhatsApp'**
+  String get sendOnWhatsApp;
+
+  /// No description provided for @sendImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Image'**
+  String get sendImage;
+
+  /// No description provided for @sendText.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Text'**
+  String get sendText;
+
+  /// No description provided for @previousDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Due'**
+  String get previousDue;
+
+  /// No description provided for @currentAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Amount'**
+  String get currentAmount;
+
+  /// No description provided for @newTotalDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Net Due'**
+  String get newTotalDue;
+
+  /// No description provided for @addItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Item'**
+  String get addItem;
+
+  /// No description provided for @itemName.
+  ///
+  /// In en, this message translates to:
+  /// **'Item Name'**
+  String get itemName;
+
+  /// No description provided for @quantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get quantity;
+
+  /// No description provided for @shopPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop Phone'**
+  String get shopPhone;
+
+  /// No description provided for @shopAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop Address'**
+  String get shopAddress;
+
+  /// No description provided for @autoShowReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-show Voucher'**
+  String get autoShowReceipt;
+
+  /// No description provided for @viewVoucher.
+  ///
+  /// In en, this message translates to:
+  /// **'View Voucher'**
+  String get viewVoucher;
+
+  /// No description provided for @saveImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Image'**
+  String get saveImage;
+
+  /// No description provided for @trackCreditTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Track customer credit, the simple way'**
+  String get trackCreditTagline;
 }
 
 class _AppLocalizationsDelegate

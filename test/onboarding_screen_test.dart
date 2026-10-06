@@ -232,12 +232,18 @@ class _MockSettingsRepository implements SettingsRepository {
   Future<AppSettings> updateSettings({
     required String shopName,
     required String currencySymbol,
+    String? shopPhone,
+    String? shopAddress,
+    bool? autoShowReceipt,
   }) async {
     updateCalls++;
     updatedSettings = AppSettings(
       userId: initialSettings.userId,
       shopName: shopName,
+      shopPhone: shopPhone,
+      shopAddress: shopAddress,
       currencySymbol: currencySymbol,
+      autoShowReceipt: autoShowReceipt ?? true,
       updatedAt: DateTime.now(),
     );
     return updatedSettings!;

@@ -389,6 +389,22 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
             const SizedBox(width: 4),
 
+            // View Voucher Icon
+            IconButton(
+              icon: const Icon(
+                Icons.receipt_long_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+              tooltip: 'View Voucher',
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.all(6),
+              constraints: const BoxConstraints(),
+              onPressed: () => launchVoucherForTransaction(context, ref, tx, forceShow: true),
+            ),
+
+            const SizedBox(width: 2),
+
             // Dedicated Edit Icon
             IconButton(
               icon: const Icon(

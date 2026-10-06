@@ -76,12 +76,19 @@ class SettingsRepository {
   Future<AppSettings> updateSettings({
     required String shopName,
     required String currencySymbol,
+    String? shopPhone,
+    String? shopAddress,
+    bool? autoShowReceipt,
   }) async {
     final now = DateTime.now().toUtc();
+    final current = await getSettings();
     final settings = AppSettings(
       userId: _currentUserId,
       shopName: shopName,
+      shopPhone: shopPhone ?? current.shopPhone,
+      shopAddress: shopAddress ?? current.shopAddress,
       currencySymbol: currencySymbol,
+      autoShowReceipt: autoShowReceipt ?? current.autoShowReceipt,
       updatedAt: now,
     );
 

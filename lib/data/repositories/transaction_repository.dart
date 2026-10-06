@@ -8,6 +8,20 @@ import '../local/local_database.dart';
 import '../models/transaction.dart';
 import '../sync/sync_service.dart';
 
+class VoucherBalanceSnapshot {
+  final double balanceBefore;
+  final double transactionAmount;
+  final TransactionType type;
+  final double balanceAfter;
+
+  const VoucherBalanceSnapshot({
+    required this.balanceBefore,
+    required this.transactionAmount,
+    required this.type,
+    required this.balanceAfter,
+  });
+}
+
 class TransactionRepository {
   final LocalDatabase _localDb;
   final SyncService syncService;
@@ -63,6 +77,45 @@ class TransactionRepository {
   Future<AppTransaction?> getById(String id) async {
     final row = await _localDb.getTransactionById(id);
     return row != null ? AppTransaction.fromMap(row) : null;
+  }
+
+  /// Calculates the point-in-time balance snapshot before and after a transaction.
+  Future<VoucherBalanceSnapshot> getTransactionBalanceSnapshot(
+    String customerId,
+    AppTransaction targetTx,
+  ) async {
+    final all = await getAll(customerId: customerId);
+    all.sort((a, b) {
+      final dateComp = a.date.compareTo(b.date);
+      if (dateComp != 0) return dateComp;
+      return a.createdAt.compareTo(b.createdAt);
+    });
+
+    double balanceBefore = 0.0;
+    for (final tx in all) {
+      if (tx.id == targetTx.id) {
+        break;
+      }
+      if (tx.isBaki) {
+        balanceBefore += tx.amount;
+      } else if (tx.isPayment) {
+        balanceBefore -= tx.amount;
+      }
+    }
+
+    final double balanceAfter;
+    if (targetTx.isBaki) {
+      balanceAfter = balanceBefore + targetTx.amount;
+    } else {
+      balanceAfter = balanceBefore - targetTx.amount;
+    }
+
+    return VoucherBalanceSnapshot(
+      balanceBefore: balanceBefore,
+      transactionAmount: targetTx.amount,
+      type: targetTx.type,
+      balanceAfter: balanceAfter,
+    );
   }
 
   Future<AppTransaction> addTransaction({

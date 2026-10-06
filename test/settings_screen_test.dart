@@ -431,7 +431,7 @@ void main() {
 
 class _MockSettingsRepository implements SettingsRepository {
   final AppSettings initialSettings;
-  final List<Map<String, String>> updateCalls = [];
+  final List<Map<String, dynamic>> updateCalls = [];
 
   _MockSettingsRepository({required this.initialSettings});
 
@@ -445,15 +445,24 @@ class _MockSettingsRepository implements SettingsRepository {
   Future<AppSettings> updateSettings({
     required String shopName,
     required String currencySymbol,
+    String? shopPhone,
+    String? shopAddress,
+    bool? autoShowReceipt,
   }) async {
     updateCalls.add({
       'shopName': shopName,
       'currencySymbol': currencySymbol,
+      'shopPhone': shopPhone,
+      'shopAddress': shopAddress,
+      'autoShowReceipt': autoShowReceipt,
     });
     return AppSettings(
       userId: initialSettings.userId,
       shopName: shopName,
+      shopPhone: shopPhone,
+      shopAddress: shopAddress,
       currencySymbol: currencySymbol,
+      autoShowReceipt: autoShowReceipt ?? true,
       updatedAt: DateTime.now(),
     );
   }

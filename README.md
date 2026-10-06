@@ -48,6 +48,11 @@ A clean, modern, and production-ready **Flutter application** designed for small
   - Seamless in-app language switcher in Settings with instant state persistence via Riverpod.
   - Fully type-safe localizations powered by Flutter's official `gen-l10n` toolchain and ARB resource files.
 
+- **🧾 Digital Vouchers & Receipt Sharing**:
+  - Instant digital transaction receipts / vouchers formatted for thermal printers or image sharing on WhatsApp and social media.
+  - Customizable shop branding: Shop Phone Number, Address, and Custom Footer Messages.
+  - Interactive voucher preview sheet with instant share, copy, and print options.
+
 ---
 
 ## 🏗️ Architecture & Project Structure
@@ -80,7 +85,8 @@ lib/
     ├── history/                  # Global transaction history & filtering
     ├── onboarding/               # First-time shop setup
     ├── settings/                 # Shop profile, currency customization & backup
-    └── shared/                   # Reusable balance badges, stat cards, dialogs
+    ├── shared/                   # Reusable balance badges, stat cards, dialogs
+    └── vouchers/                 # Digital receipt card & preview sheet
 ```
 
 ---

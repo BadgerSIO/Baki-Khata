@@ -336,6 +336,76 @@ void main() {
       expect((cancelCenter.dy - saveCenter.dy).abs(), lessThanOrEqualTo(1.0));
       expect(cancelCenter.dx, lessThan(saveCenter.dx));
     });
+
+    testWidgets('TransactionDialog prompts discard confirmation when user entered amount and taps cancel', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            customersStreamProvider.overrideWith((ref) => Stream.value([testCustomer])),
+            settingsStreamProvider.overrideWith((ref) => Stream.value(testSettings)),
+            transactionRepositoryProvider.overrideWithValue(_MockTransactionRepository()),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => Consumer(
+                  builder: (context, ref, _) => ElevatedButton(
+                    onPressed: () => showTransactionDialog(
+                      context,
+                      ref,
+                      type: TransactionType.baki,
+                    ),
+                    child: const Text('Open'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Give Credit'), findsOneWidget);
+
+      // Enter amount (making it dirty)
+      await tester.enterText(find.widgetWithText(TextFormField, 'Amount *'), '150');
+      await tester.pumpAndSettle();
+
+      // Tap Cancel button
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      // Discard confirmation dialog is shown
+      expect(find.text('Discard Changes?'), findsOneWidget);
+      expect(find.text('Keep Editing'), findsOneWidget);
+      expect(find.text('Discard'), findsOneWidget);
+
+      // Tap Keep Editing
+      await tester.tap(find.text('Keep Editing'));
+      await tester.pumpAndSettle();
+
+      // Dialog is still open
+      expect(find.text('Give Credit'), findsOneWidget);
+
+      // Tap Close button in header (X)
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pumpAndSettle();
+
+      // Discard dialog is shown again
+      expect(find.text('Discard Changes?'), findsOneWidget);
+
+      // Tap Discard
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+
+      // Dialog is now closed
+      expect(find.text('Give Credit'), findsNothing);
+    });
   });
 }
 

@@ -521,8 +521,56 @@ class AppLocalizationsEn extends AppLocalizations {
       'By creating an account, you agree to our Terms of Service and Privacy Policy.';
 
   @override
-  String get trackCreditTagline => 'Track customer credit, the simple way';
+  String get deleteTransaction => 'Delete Transaction';
 
   @override
-  String get deleteTransaction => 'Delete Transaction';
+  String get digitalVoucher => 'Digital Voucher / Cash Memo';
+
+  @override
+  String get voucherNumber => 'Memo No.';
+
+  @override
+  String get sendOnWhatsApp => 'Send on WhatsApp';
+
+  @override
+  String get sendImage => 'Send Image';
+
+  @override
+  String get sendText => 'Send Text';
+
+  @override
+  String get previousDue => 'Previous Due';
+
+  @override
+  String get currentAmount => 'Current Amount';
+
+  @override
+  String get newTotalDue => 'Total Net Due';
+
+  @override
+  String get addItem => 'Add Item';
+
+  @override
+  String get itemName => 'Item Name';
+
+  @override
+  String get quantity => 'Quantity';
+
+  @override
+  String get shopPhone => 'Shop Phone';
+
+  @override
+  String get shopAddress => 'Shop Address';
+
+  @override
+  String get autoShowReceipt => 'Auto-show Voucher';
+
+  @override
+  String get viewVoucher => 'View Voucher';
+
+  @override
+  String get saveImage => 'Save Image';
+
+  @override
+  String get trackCreditTagline => 'Track customer credit, the simple way';
 }

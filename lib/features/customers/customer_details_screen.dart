@@ -611,7 +611,16 @@ class CustomerDetailsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
+            IconButton(
+              icon: const Icon(
+                Icons.receipt_long_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+              tooltip: 'View Voucher',
+              onPressed: () => launchVoucherForTransaction(context, ref, tx, forceShow: true),
+            ),
             IconButton(
               icon: const Icon(
                 Icons.delete_outline,

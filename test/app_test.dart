@@ -169,6 +169,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Shop Information'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('App Language'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('App Language'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Account & Sync'),
