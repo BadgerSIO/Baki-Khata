@@ -572,4 +572,102 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get trackCreditTagline => 'সহজ উপায়ে গ্রাহকের বাকি হিসাব রাখুন';
+
+  @override
+  String get sendDueReminder => 'তাগাদা পাঠান';
+
+  @override
+  String get sendStatement => 'হিসাব বিবরণী পাঠান';
+
+  @override
+  String get whatsappReminder => 'WhatsApp তাগাদা';
+
+  @override
+  String get whatsappStatement => 'WhatsApp হিসাব বিবরণী';
+
+  @override
+  String get politeTone => 'নম্র তাগাদা';
+
+  @override
+  String get urgentTone => 'জরুরি তাগাদা';
+
+  @override
+  String get statementTone => 'হিসাব বিবরণী';
+
+  @override
+  String get addPhoneToRemind => 'তাগাদা পাঠাতে ফোন নম্বর যোগ করুন';
+
+  @override
+  String get addPhoneNumber => '+ নম্বর যোগ করুন';
+
+  @override
+  String lastReminded(String time) {
+    return 'সর্বশেষ তাগাদা: $time';
+  }
+
+  @override
+  String get reminderMessageCopied => 'তাগাদার মেসেজ কপি করা হয়েছে';
+
+  @override
+  String get openWhatsApp => 'WhatsApp-এ পাঠান';
+
+  @override
+  String get shareViaOther => 'অন্য মাধ্যমে শেয়ার';
+
+  @override
+  String get copyMessage => 'মেসেজ কপি';
+
+  @override
+  String get whatsappNotInstalled => 'WhatsApp ইনস্টল করা নেই';
+
+  @override
+  String get couldNotLaunchWhatsApp => 'WhatsApp খোলা যায়নি';
+
+  @override
+  String get paymentMethods => 'ডিজিটাল পেমেন্ট মাধ্যম';
+
+  @override
+  String get paymentMethodsSubtitle =>
+      'তাগাদায় বিকাশ, নগদ ও রকেট নম্বর যুক্ত করুন';
+
+  @override
+  String get bkash => 'বিকাশ';
+
+  @override
+  String get nagad => 'নগদ';
+
+  @override
+  String get rocket => 'রকেট';
+
+  @override
+  String get accountType => 'অ্যাকাউন্ট টাইপ';
+
+  @override
+  String get personal => 'পার্সোনাল';
+
+  @override
+  String get merchant => 'মার্চেন্ট';
+
+  @override
+  String get sendMoney => 'Send Money';
+
+  @override
+  String get makePayment => 'Make Payment';
+
+  @override
+  String get trxIdConfirmationPrompt =>
+      'টাকা পাঠিয়ে ট্রানজেকশন আইডি (TrxID) বা স্ক্রিনশট পাঠিয়ে নিশ্চিত করুন।';
+
+  @override
+  String get addPaymentMethodsTip =>
+      'তাগাদায় বিকাশ বা নগদ নম্বর যুক্ত করতে সেটিংসে যান';
+
+  @override
+  String get configureInSettings => 'সেটিংস';
+
+  @override
+  String get payAtShopPrompt => 'দোকানে এসে পরিশোধ করার বিনীত অনুরোধ রইল।';
+
+  @override
+  String get contactOrShopPrompt => 'দোকানে এসে অথবা যোগাযোগ করে পরিশোধ করুন:';
 }

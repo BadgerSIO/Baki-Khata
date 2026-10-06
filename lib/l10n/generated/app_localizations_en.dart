@@ -573,4 +573,103 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trackCreditTagline => 'Track customer credit, the simple way';
+
+  @override
+  String get sendDueReminder => 'Send Due Reminder';
+
+  @override
+  String get sendStatement => 'Send Statement';
+
+  @override
+  String get whatsappReminder => 'WhatsApp Reminder';
+
+  @override
+  String get whatsappStatement => 'WhatsApp Statement';
+
+  @override
+  String get politeTone => 'Polite';
+
+  @override
+  String get urgentTone => 'Urgent';
+
+  @override
+  String get statementTone => 'Statement';
+
+  @override
+  String get addPhoneToRemind => 'Add phone number to send reminder';
+
+  @override
+  String get addPhoneNumber => '+ Add Phone';
+
+  @override
+  String lastReminded(String time) {
+    return 'Last reminded: $time';
+  }
+
+  @override
+  String get reminderMessageCopied => 'Reminder message copied to clipboard';
+
+  @override
+  String get openWhatsApp => 'Open WhatsApp';
+
+  @override
+  String get shareViaOther => 'Share via Other';
+
+  @override
+  String get copyMessage => 'Copy Message';
+
+  @override
+  String get whatsappNotInstalled => 'WhatsApp is not installed';
+
+  @override
+  String get couldNotLaunchWhatsApp => 'Could not open WhatsApp';
+
+  @override
+  String get paymentMethods => 'Digital Payment Methods';
+
+  @override
+  String get paymentMethodsSubtitle =>
+      'Configure bKash, Nagad & Rocket for reminders';
+
+  @override
+  String get bkash => 'bKash';
+
+  @override
+  String get nagad => 'Nagad';
+
+  @override
+  String get rocket => 'Rocket';
+
+  @override
+  String get accountType => 'Account Type';
+
+  @override
+  String get personal => 'Personal';
+
+  @override
+  String get merchant => 'Merchant';
+
+  @override
+  String get sendMoney => 'Send Money';
+
+  @override
+  String get makePayment => 'Make Payment';
+
+  @override
+  String get trxIdConfirmationPrompt =>
+      'After payment, please reply with TrxID or screenshot to confirm.';
+
+  @override
+  String get addPaymentMethodsTip =>
+      'Add bKash or Nagad in Settings to include payment info in reminders';
+
+  @override
+  String get configureInSettings => 'Settings';
+
+  @override
+  String get payAtShopPrompt =>
+      'Kindly request to settle the balance at the shop.';
+
+  @override
+  String get contactOrShopPrompt => 'Pay at shop or contact:';
 }

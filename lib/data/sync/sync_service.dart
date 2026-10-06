@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/supabase_client.dart';
 import '../local/local_database.dart';
+import '../models/app_settings.dart';
 
 enum SyncStatus {
   guest,
@@ -645,7 +646,19 @@ class SyncService {
           .eq('user_id', user.id)
           .maybeSingle();
       if (settingsRes != null) {
-        await _localDb.upsertSettings(Map<String, dynamic>.from(settingsRes));
+        final remoteSettings = AppSettings.fromMap(settingsRes);
+        final localData = await _localDb.getSettings(user.id);
+        if (localData != null) {
+          final localSettings = AppSettings.fromMap(localData);
+          if (localSettings.updatedAt.isAfter(remoteSettings.updatedAt)) {
+            // Local settings are newer than remote; push local up to Supabase
+            await client.from('settings').upsert(localSettings.toJson());
+          } else {
+            await _localDb.upsertSettings(Map<String, dynamic>.from(settingsRes));
+          }
+        } else {
+          await _localDb.upsertSettings(Map<String, dynamic>.from(settingsRes));
+        }
         await _localDb.deleteSettings('local_guest');
       }
 

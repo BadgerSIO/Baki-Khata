@@ -35,9 +35,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _currencyController = TextEditingController();
   bool _autoShowReceipt = true;
 
+  final _bkashController = TextEditingController();
+  final _nagadController = TextEditingController();
+  final _rocketController = TextEditingController();
+  bool _bkashIsMerchant = false;
+  bool _nagadIsMerchant = false;
+  bool _rocketIsMerchant = false;
+
   bool _initialized = false;
   bool _isEditing = false;
   bool _isSaving = false;
+  bool _isEditingPayments = false;
+  bool _isSavingPayments = false;
   bool _isManualSyncing = false;
 
   @override
@@ -46,6 +55,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _shopPhoneController.dispose();
     _shopAddressController.dispose();
     _currencyController.dispose();
+    _bkashController.dispose();
+    _nagadController.dispose();
+    _rocketController.dispose();
     super.dispose();
   }
 
@@ -56,13 +68,109 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _shopAddressController.text = settings.shopAddress ?? '';
       _currencyController.text = settings.currencySymbol;
       _autoShowReceipt = settings.autoShowReceipt;
+      _bkashController.text = settings.bkashNumber ?? '';
+      _bkashIsMerchant = settings.bkashIsMerchant;
+      _nagadController.text = settings.nagadNumber ?? '';
+      _nagadIsMerchant = settings.nagadIsMerchant;
+      _rocketController.text = settings.rocketNumber ?? '';
+      _rocketIsMerchant = settings.rocketIsMerchant;
       _initialized = true;
-    } else if (!_isEditing) {
-      _shopNameController.text = settings.shopName;
-      _shopPhoneController.text = settings.shopPhone ?? '';
-      _shopAddressController.text = settings.shopAddress ?? '';
-      _currencyController.text = settings.currencySymbol;
-      _autoShowReceipt = settings.autoShowReceipt;
+    } else {
+      if (!_isEditing) {
+        _shopNameController.text = settings.shopName;
+        _shopPhoneController.text = settings.shopPhone ?? '';
+        _shopAddressController.text = settings.shopAddress ?? '';
+        _currencyController.text = settings.currencySymbol;
+        _autoShowReceipt = settings.autoShowReceipt;
+      }
+      if (!_isEditingPayments) {
+        _bkashController.text = settings.bkashNumber ?? '';
+        _bkashIsMerchant = settings.bkashIsMerchant;
+        _nagadController.text = settings.nagadNumber ?? '';
+        _nagadIsMerchant = settings.nagadIsMerchant;
+        _rocketController.text = settings.rocketNumber ?? '';
+        _rocketIsMerchant = settings.rocketIsMerchant;
+      }
+    }
+  }
+
+  void _startEditingPayments() {
+    final settings = ref.read(settingsStreamProvider).value;
+    if (settings != null) {
+      _bkashController.text = settings.bkashNumber ?? '';
+      _bkashIsMerchant = settings.bkashIsMerchant;
+      _nagadController.text = settings.nagadNumber ?? '';
+      _nagadIsMerchant = settings.nagadIsMerchant;
+      _rocketController.text = settings.rocketNumber ?? '';
+      _rocketIsMerchant = settings.rocketIsMerchant;
+    }
+    setState(() => _isEditingPayments = true);
+  }
+
+  void _cancelEditingPayments() {
+    FocusScope.of(context).unfocus();
+    final settings = ref.read(settingsStreamProvider).value;
+    if (settings != null) {
+      _bkashController.text = settings.bkashNumber ?? '';
+      _bkashIsMerchant = settings.bkashIsMerchant;
+      _nagadController.text = settings.nagadNumber ?? '';
+      _nagadIsMerchant = settings.nagadIsMerchant;
+      _rocketController.text = settings.rocketNumber ?? '';
+      _rocketIsMerchant = settings.rocketIsMerchant;
+    }
+    setState(() => _isEditingPayments = false);
+  }
+
+  Future<void> _savePayments() async {
+    FocusScope.of(context).unfocus();
+    if (!mounted) return;
+    setState(() => _isSavingPayments = true);
+    try {
+      final settings = ref.read(settingsStreamProvider).value;
+      final bkash = _bkashController.text.trim();
+      final nagad = _nagadController.text.trim();
+      final rocket = _rocketController.text.trim();
+
+      await ref.read(settingsRepositoryProvider).updateSettings(
+            shopName: settings?.shopName ?? 'My Shop',
+            currencySymbol: settings?.currencySymbol ?? '৳',
+            shopPhone: settings?.shopPhone,
+            shopAddress: settings?.shopAddress,
+            autoShowReceipt: settings?.autoShowReceipt,
+            bkashNumber: bkash.isEmpty ? null : bkash,
+            bkashIsMerchant: _bkashIsMerchant,
+            nagadNumber: nagad.isEmpty ? null : nagad,
+            nagadIsMerchant: _nagadIsMerchant,
+            rocketNumber: rocket.isEmpty ? null : rocket,
+            rocketIsMerchant: _rocketIsMerchant,
+            overridePaymentMethods: true,
+          );
+
+      if (mounted) {
+        setState(() => _isEditingPayments = false);
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n?.shopInfoSaved ?? 'Shop information saved'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('[SettingsScreen] Save payments failed: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save payment methods: $e'),
+            backgroundColor: AppColors.debtText,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingPayments = false);
+      }
     }
   }
 
@@ -730,62 +838,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F4F2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.receipt_long_rounded,
-                              size: 20,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  currentLocale.languageCode == 'bn'
-                                      ? 'স্বয়ংক্রিয় ভাউচার প্রদর্শন'
-                                      : 'Auto-show Voucher',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF191C1B),
-                                  ),
-                                ),
-                                Text(
-                                  currentLocale.languageCode == 'bn'
-                                      ? 'লেনদেন সেভের পর ডিজিটাল রসিদ প্রদর্শন করবে'
-                                      : 'Displays receipt memo immediately after save',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF78909C),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Switch(
-                            value: _autoShowReceipt,
-                            onChanged: _updateAutoShowReceipt,
-                            activeThumbColor: AppColors.primary,
-                          ),
-                        ],
-                      ),
-                    ),
                   ] else ...[
                     // Edit Mode Form Fields
                     TextFormField(
@@ -866,6 +918,279 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ],
                     ),
                   ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 2.5 Digital Payment Methods Card
+          Card(
+            margin: EdgeInsets.zero,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Color(0xFFE0E5E2)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        l10n?.paymentMethods ?? 'Digital Payment Methods',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (!_isEditingPayments)
+                        FilledButton.tonalIcon(
+                          onPressed: _startEditingPayments,
+                          icon: const Icon(Icons.edit_outlined, size: 16),
+                          label: Text(l10n?.edit ?? 'Edit'),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(0, 36),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        )
+                      else if (_isSavingPayments)
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1.5,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              l10n?.loading ?? 'Saving...',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n?.paymentMethodsSubtitle ??
+                        'Configure bKash, Nagad & Rocket for reminders',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF78909C),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (!_isEditingPayments) ...[
+                    // View mode
+                    _buildPaymentChannelViewRow(
+                      brand: l10n?.bkash ?? 'bKash',
+                      number: _bkashController.text,
+                      isMerchant: _bkashIsMerchant,
+                      brandColor: const Color(0xFFE2136E),
+                      l10n: l10n,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildPaymentChannelViewRow(
+                      brand: l10n?.nagad ?? 'Nagad',
+                      number: _nagadController.text,
+                      isMerchant: _nagadIsMerchant,
+                      brandColor: const Color(0xFFF7941D),
+                      l10n: l10n,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildPaymentChannelViewRow(
+                      brand: l10n?.rocket ?? 'Rocket',
+                      number: _rocketController.text,
+                      isMerchant: _rocketIsMerchant,
+                      brandColor: const Color(0xFF8C3494),
+                      l10n: l10n,
+                    ),
+                  ] else ...[
+                    // Edit mode
+                    _buildPaymentChannelEditSection(
+                      brand: l10n?.bkash ?? 'bKash',
+                      controller: _bkashController,
+                      isMerchant: _bkashIsMerchant,
+                      brandColor: const Color(0xFFE2136E),
+                      onTypeChanged: (isMerchant) {
+                        setState(() => _bkashIsMerchant = isMerchant);
+                      },
+                      l10n: l10n,
+                    ),
+                    const SizedBox(height: 14),
+                    _buildPaymentChannelEditSection(
+                      brand: l10n?.nagad ?? 'Nagad',
+                      controller: _nagadController,
+                      isMerchant: _nagadIsMerchant,
+                      brandColor: const Color(0xFFF7941D),
+                      onTypeChanged: (isMerchant) {
+                        setState(() => _nagadIsMerchant = isMerchant);
+                      },
+                      l10n: l10n,
+                    ),
+                    const SizedBox(height: 14),
+                    _buildPaymentChannelEditSection(
+                      brand: l10n?.rocket ?? 'Rocket',
+                      controller: _rocketController,
+                      isMerchant: _rocketIsMerchant,
+                      brandColor: const Color(0xFF8C3494),
+                      onTypeChanged: (isMerchant) {
+                        setState(() => _rocketIsMerchant = isMerchant);
+                      },
+                      l10n: l10n,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _isSavingPayments ? null : _cancelEditingPayments,
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            icon: const Icon(Icons.close_rounded, size: 18),
+                            label: Text(l10n?.cancel ?? 'Cancel'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: _isSavingPayments ? null : _savePayments,
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            icon: _isSavingPayments
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.check_rounded, size: 18),
+                            label: Text(_isSavingPayments
+                                ? (l10n?.loading ?? 'Saving...')
+                                : (l10n?.save ?? 'Save')),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 3. Receipt & Voucher Preferences Card
+          Card(
+            margin: EdgeInsets.zero,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Color(0xFFE0E5E2)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    currentLocale.languageCode == 'bn'
+                        ? 'রসিদ ও ভাউচার সেটিংস'
+                        : 'Receipt & Voucher Preferences',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    currentLocale.languageCode == 'bn'
+                        ? 'লেনদেন সেভের পর ডিজিটাল মেমোর প্রদর্শন নিয়ন্ত্রণ করুন।'
+                        : 'Control automatic display of digital cash memos after recording entries.',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF78909C),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F4F2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.receipt_long_rounded,
+                            size: 20,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                currentLocale.languageCode == 'bn'
+                                    ? 'স্বয়ংক্রিয় ভাউচার প্রদর্শন'
+                                    : 'Auto-show Voucher',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF191C1B),
+                                ),
+                              ),
+                              Text(
+                                currentLocale.languageCode == 'bn'
+                                    ? 'লেনদেন সেভের পর ডিজিটাল রসিদ প্রদর্শন করবে'
+                                    : 'Displays receipt memo immediately after save',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF78909C),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: _autoShowReceipt,
+                          onChanged: _updateAutoShowReceipt,
+                          activeThumbColor: AppColors.primary,
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1162,6 +1487,230 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentChannelViewRow({
+    required String brand,
+    required String number,
+    required bool isMerchant,
+    required Color brandColor,
+    required AppLocalizations? l10n,
+  }) {
+    final hasNumber = number.trim().isNotEmpty;
+    final typeLabel = isMerchant
+        ? '${l10n?.merchant ?? "Merchant"} (${l10n?.makePayment ?? "Make Payment"})'
+        : '${l10n?.personal ?? "Personal"} (${l10n?.sendMoney ?? "Send Money"})';
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F4F2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: brandColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              brand,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: brandColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  hasNumber ? number : (l10n?.neverSynced ?? 'Not set'),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: hasNumber
+                        ? const Color(0xFF191C1B)
+                        : const Color(0xFF90A4AE),
+                  ),
+                ),
+                if (hasNumber) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    typeLabel,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF60706B),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentChannelEditSection({
+    required String brand,
+    required TextEditingController controller,
+    required bool isMerchant,
+    required Color brandColor,
+    required ValueChanged<bool> onTypeChanged,
+    required AppLocalizations? l10n,
+  }) {
+    final personalLabel =
+        '${l10n?.personal ?? "Personal"} (${l10n?.sendMoney ?? "Send Money"})';
+    final merchantLabel =
+        '${l10n?.merchant ?? "Merchant"} (${l10n?.makePayment ?? "Make Payment"})';
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FBF9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE0E5E2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: brandColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  brand,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: brandColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                l10n?.phoneOptional ?? 'Phone Number',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF60706B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: controller,
+            keyboardType: TextInputType.phone,
+            decoration: InputDecoration(
+              hintText: 'e.g. 01712345678',
+              isDense: true,
+              prefixIcon: const Icon(Icons.phone_android_rounded, size: 20),
+              suffixIcon: controller.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear_rounded, size: 18),
+                      onPressed: () {
+                        controller.clear();
+                        setState(() {});
+                      },
+                    )
+                  : null,
+            ),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n?.accountType ?? 'Account Type',
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF78909C),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: ChoiceChip(
+                  label: Center(
+                    child: Text(
+                      personalLabel,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight:
+                            !isMerchant ? FontWeight.bold : FontWeight.w500,
+                        color:
+                            !isMerchant ? Colors.white : const Color(0xFF60706B),
+                      ),
+                    ),
+                  ),
+                  selected: !isMerchant,
+                  onSelected: (selected) {
+                    if (selected) onTypeChanged(false);
+                  },
+                  selectedColor: AppColors.primary,
+                  backgroundColor: const Color(0xFFEFF3F1),
+                  showCheckmark: false,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: !isMerchant
+                          ? AppColors.primary
+                          : const Color(0xFFE0E5E2),
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ChoiceChip(
+                  label: Center(
+                    child: Text(
+                      merchantLabel,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight:
+                            isMerchant ? FontWeight.bold : FontWeight.w500,
+                        color:
+                            isMerchant ? Colors.white : const Color(0xFF60706B),
+                      ),
+                    ),
+                  ),
+                  selected: isMerchant,
+                  onSelected: (selected) {
+                    if (selected) onTypeChanged(true);
+                  },
+                  selectedColor: AppColors.primary,
+                  backgroundColor: const Color(0xFFEFF3F1),
+                  showCheckmark: false,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: isMerchant
+                          ? AppColors.primary
+                          : const Color(0xFFE0E5E2),
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

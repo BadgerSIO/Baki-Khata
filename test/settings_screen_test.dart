@@ -58,8 +58,8 @@ void main() {
       expect(find.text('Bhai Bhai Store'), findsOneWidget);
       expect(find.text('৳'), findsOneWidget);
 
-      // Edit button is rendered
-      expect(find.widgetWithText(FilledButton, 'Edit'), findsOneWidget);
+      // Edit buttons are rendered (Shop Info + Payment Methods)
+      expect(find.widgetWithText(FilledButton, 'Edit'), findsNWidgets(2));
 
       // Save and Cancel buttons are NOT rendered in view mode
       expect(find.widgetWithText(FilledButton, 'Save'), findsNothing);
@@ -89,8 +89,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Tap Edit button
-      await tester.tap(find.widgetWithText(FilledButton, 'Edit'));
+      // Tap Edit button on Shop Info
+      await tester.tap(find.widgetWithText(FilledButton, 'Edit').first);
       await tester.pumpAndSettle();
 
       // Form fields and buttons now appear
@@ -99,8 +99,8 @@ void main() {
       expect(find.widgetWithText(OutlinedButton, 'Cancel'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'Save'), findsOneWidget);
 
-      // Edit button in header is no longer visible
-      expect(find.widgetWithText(FilledButton, 'Edit'), findsNothing);
+      // Edit button for Shop Info is replaced by Save/Cancel, Payment Methods edit button still visible
+      expect(find.widgetWithText(FilledButton, 'Edit'), findsOneWidget);
     });
 
     testWidgets(
@@ -127,7 +127,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap Edit
-      await tester.tap(find.widgetWithText(FilledButton, 'Edit'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Edit').first);
       await tester.pumpAndSettle();
 
       // Edit shop name
@@ -136,7 +136,7 @@ void main() {
       await tester.pump();
 
       // Tap Save
-      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Save').first);
       await tester.pumpAndSettle();
 
       // Saved immediately
@@ -148,7 +148,7 @@ void main() {
 
       // Returns to view mode: Save disappears, Edit button returns
       expect(find.widgetWithText(FilledButton, 'Save'), findsNothing);
-      expect(find.widgetWithText(FilledButton, 'Edit'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Edit'), findsNWidgets(2));
     });
 
     testWidgets(
@@ -175,7 +175,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap Edit
-      await tester.tap(find.widgetWithText(FilledButton, 'Edit'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Edit').first);
       await tester.pumpAndSettle();
 
       // Edit shop name
@@ -184,7 +184,7 @@ void main() {
       await tester.pump();
 
       // Tap Cancel
-      await tester.tap(find.widgetWithText(OutlinedButton, 'Cancel'));
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Cancel').first);
       await tester.pumpAndSettle();
 
       // No updateSettings call was made
@@ -192,7 +192,7 @@ void main() {
 
       // Returns to view mode with original values
       expect(find.widgetWithText(FilledButton, 'Save'), findsNothing);
-      expect(find.widgetWithText(FilledButton, 'Edit'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Edit'), findsNWidgets(2));
       expect(find.text('Bhai Bhai Store'), findsOneWidget);
     });
 
@@ -218,7 +218,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap Edit
-      await tester.tap(find.widgetWithText(FilledButton, 'Edit'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Edit').first);
       await tester.pumpAndSettle();
 
       // Edit shop name
@@ -426,6 +426,72 @@ void main() {
       expect(find.text('Sign Out?'), findsOneWidget);
       expect(find.text('Cancel'), findsOneWidget);
     });
+
+    testWidgets('Digital Payment Methods Card displays configured methods and allows editing', (tester) async {
+      final configuredSettings = testSettings.copyWith(
+        bkashNumber: '01711223344',
+        bkashIsMerchant: false,
+        nagadNumber: '01855667788',
+        nagadIsMerchant: true,
+      );
+      final mockRepo = _MockSettingsRepository(initialSettings: configuredSettings);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...emptyDataOverrides,
+            settingsStreamProvider.overrideWith((ref) => Stream.value(configuredSettings)),
+            settingsRepositoryProvider.overrideWithValue(mockRepo),
+            syncStatusProvider.overrideWith((ref) => SyncStatus.idle),
+            lastSyncedTimeProvider.overrideWith((ref) => now),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: const SettingsScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Scroll to Digital Payment Methods Card
+      await tester.scrollUntilVisible(
+        find.text('Digital Payment Methods'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Digital Payment Methods'), findsOneWidget);
+
+      // Verify configured channels rendered in view mode
+      expect(find.text('01711223344'), findsOneWidget);
+      expect(find.text('Personal (Send Money)'), findsOneWidget);
+      expect(find.text('01855667788'), findsOneWidget);
+      expect(find.text('Merchant (Make Payment)'), findsOneWidget);
+
+      // Tap Edit button on Digital Payment Methods Card (find Edit buttons)
+      final editButtons = find.widgetWithText(FilledButton, 'Edit');
+      expect(editButtons, findsNWidgets(2)); // Shop Info + Payment Methods
+      await tester.tap(editButtons.last);
+      await tester.pumpAndSettle();
+
+      // Verify form fields for phone numbers
+      expect(find.widgetWithText(TextFormField, '01711223344'), findsOneWidget);
+
+      // Edit bKash number
+      await tester.enterText(find.widgetWithText(TextFormField, '01711223344'), '01799887766');
+      await tester.pump();
+
+      // Tap Save button on Payment Methods
+      final saveButtons = find.widgetWithText(FilledButton, 'Save');
+      await tester.tap(saveButtons.last);
+      await tester.pumpAndSettle();
+
+      // Verify repo was called with new payment methods
+      expect(mockRepo.updateCalls.isNotEmpty, isTrue);
+      final lastCall = mockRepo.updateCalls.last;
+      expect(lastCall['bkashNumber'], '01799887766');
+      expect(lastCall['overridePaymentMethods'], isTrue);
+    });
   });
 }
 
@@ -448,6 +514,13 @@ class _MockSettingsRepository implements SettingsRepository {
     String? shopPhone,
     String? shopAddress,
     bool? autoShowReceipt,
+    String? bkashNumber,
+    bool? bkashIsMerchant,
+    String? nagadNumber,
+    bool? nagadIsMerchant,
+    String? rocketNumber,
+    bool? rocketIsMerchant,
+    bool overridePaymentMethods = false,
   }) async {
     updateCalls.add({
       'shopName': shopName,
@@ -455,6 +528,13 @@ class _MockSettingsRepository implements SettingsRepository {
       'shopPhone': shopPhone,
       'shopAddress': shopAddress,
       'autoShowReceipt': autoShowReceipt,
+      'bkashNumber': bkashNumber,
+      'bkashIsMerchant': bkashIsMerchant,
+      'nagadNumber': nagadNumber,
+      'nagadIsMerchant': nagadIsMerchant,
+      'rocketNumber': rocketNumber,
+      'rocketIsMerchant': rocketIsMerchant,
+      'overridePaymentMethods': overridePaymentMethods,
     });
     return AppSettings(
       userId: initialSettings.userId,
@@ -463,6 +543,12 @@ class _MockSettingsRepository implements SettingsRepository {
       shopAddress: shopAddress,
       currencySymbol: currencySymbol,
       autoShowReceipt: autoShowReceipt ?? true,
+      bkashNumber: bkashNumber ?? initialSettings.bkashNumber,
+      bkashIsMerchant: bkashIsMerchant ?? initialSettings.bkashIsMerchant,
+      nagadNumber: nagadNumber ?? initialSettings.nagadNumber,
+      nagadIsMerchant: nagadIsMerchant ?? initialSettings.nagadIsMerchant,
+      rocketNumber: rocketNumber ?? initialSettings.rocketNumber,
+      rocketIsMerchant: rocketIsMerchant ?? initialSettings.rocketIsMerchant,
       updatedAt: DateTime.now(),
     );
   }

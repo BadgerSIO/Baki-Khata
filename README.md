@@ -26,7 +26,13 @@ A clean, modern, and production-ready **Flutter application** designed for small
   - One-tap **Quick Amount Chips** (`+৳100`, `+৳500`, `+৳1000`, `+৳2000`) for lightning-fast entry.
   - Record **Baki (Debit)** and **Payment (Credit)** entries with custom timestamps and notes.
   - Automatic balance calculation and running balance audit trail.
-  - WhatsApp & SMS customer reminders / statement sharing.
+
+- **💬 WhatsApp Reminders & Digital Payment Gateways (MFS)**:
+  - 1-tap **Dedicated WhatsApp Reminder & Statement** directly from customer details.
+  - Three distinct messaging tones: **নম্র তাগাদা (Polite)**, **জরুরি তাগাদা (Urgent)**, and **হিসাব বিবরণী (Statement)**.
+  - Multi-gateway support in Settings: **bKash**, **Nagad**, and **Rocket** with explicit customer action tags (**Personal - Send Money** vs **Merchant - Make Payment**).
+  - Built-in transaction verification prompt (`📌 টাকা পাঠিয়ে ট্রানজেকশন আইডি (TrxID) বা স্ক্রিনশট পাঠিয়ে নিশ্চিত করুন।`).
+  - Persistent reminder audit tracking with relative timestamps (`এইমাত্র`, `৩ দিন আগে`).
 
 - **⚡ Offline-First with Supabase Sync Engine**:
   - Uses local **SQLite** (`sqflite`) for instantaneous offline operations with zero latency.
@@ -84,7 +90,8 @@ lib/
     ├── dashboard/                # Analytics dashboard & quick actions
     ├── history/                  # Global transaction history & filtering
     ├── onboarding/               # First-time shop setup
-    ├── settings/                 # Shop profile, currency customization & backup
+    ├── reminders/                # Dedicated WhatsApp reminders, message builder & audit tracker
+    ├── settings/                 # Shop profile, digital payment gateways (bKash/Nagad/Rocket) & backup
     ├── shared/                   # Reusable balance badges, stat cards, dialogs
     └── vouchers/                 # Digital receipt card & preview sheet
 ```
@@ -120,11 +127,20 @@ CREATE TABLE public.transactions (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Settings Table
+-- Settings Table (with Digital Payment Gateways)
 CREATE TABLE public.settings (
     user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     shop_name TEXT NOT NULL DEFAULT 'My Shop',
+    shop_phone TEXT,
+    shop_address TEXT,
     currency_symbol TEXT NOT NULL DEFAULT '৳',
+    auto_show_receipt BOOLEAN NOT NULL DEFAULT true,
+    bkash_number TEXT,
+    bkash_is_merchant BOOLEAN NOT NULL DEFAULT false,
+    nagad_number TEXT,
+    nagad_is_merchant BOOLEAN NOT NULL DEFAULT false,
+    rocket_number TEXT,
+    rocket_is_merchant BOOLEAN NOT NULL DEFAULT false,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

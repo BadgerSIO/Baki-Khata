@@ -236,5 +236,41 @@
   "autoShowReceipt": "Auto-show Voucher",
   "viewVoucher": "View Voucher",
   "saveImage": "Save Image",
-  "trackCreditTagline": "Track customer credit, the simple way"
+  "trackCreditTagline": "Track customer credit, the simple way",
+  "sendDueReminder": "Send Due Reminder",
+  "sendStatement": "Send Statement",
+  "whatsappReminder": "WhatsApp Reminder",
+  "whatsappStatement": "WhatsApp Statement",
+  "politeTone": "Polite",
+  "urgentTone": "Urgent",
+  "statementTone": "Statement",
+  "addPhoneToRemind": "Add phone number to send reminder",
+  "addPhoneNumber": "+ Add Phone",
+  "lastReminded": "Last reminded: {time}",
+  "@lastReminded": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "reminderMessageCopied": "Reminder message copied to clipboard",
+  "openWhatsApp": "Open WhatsApp",
+  "shareViaOther": "Share via Other",
+  "copyMessage": "Copy Message",
+  "whatsappNotInstalled": "WhatsApp is not installed",
+  "couldNotLaunchWhatsApp": "Could not open WhatsApp",
+  "paymentMethods": "Digital Payment Methods",
+  "paymentMethodsSubtitle": "Configure bKash, Nagad & Rocket for reminders",
+  "bkash": "bKash",
+  "nagad": "Nagad",
+  "rocket": "Rocket",
+  "accountType": "Account Type",
+  "personal": "Personal",
+  "merchant": "Merchant",
+  "sendMoney": "Send Money",
+  "makePayment": "Make Payment",
+  "trxIdConfirmationPrompt": "After payment, please reply with TrxID or screenshot to confirm.",
+  "addPaymentMethodsTip": "Add bKash or Nagad in Settings to include payment info in reminders",
+  "configureInSettings": "Settings",
+  "payAtShopPrompt": "Kindly request to settle the balance at the shop.",
+  "contactOrShopPrompt": "Pay at shop or contact:"
 }

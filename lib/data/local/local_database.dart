@@ -84,7 +84,7 @@ class LocalDatabase {
     if (path != null) {
       _database = await openDatabase(
         path,
-        version: 3,
+        version: 4,
         onCreate: _createDB,
         onUpgrade: _onUpgrade,
       );
@@ -94,7 +94,7 @@ class LocalDatabase {
     final fullPath = p.join(dbPath, 'baki_khata.db');
     _database = await openDatabase(
       fullPath,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -107,7 +107,7 @@ class LocalDatabase {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -148,6 +148,12 @@ class LocalDatabase {
         shop_address TEXT,
         currency_symbol TEXT,
         auto_show_receipt INTEGER DEFAULT 1,
+        bkash_number TEXT,
+        bkash_is_merchant INTEGER DEFAULT 0,
+        nagad_number TEXT,
+        nagad_is_merchant INTEGER DEFAULT 0,
+        rocket_number TEXT,
+        rocket_is_merchant INTEGER DEFAULT 0,
         updated_at TEXT
       )
     ''');
@@ -202,6 +208,26 @@ class LocalDatabase {
       } catch (_) {}
       try {
         await db.execute('ALTER TABLE settings ADD COLUMN auto_show_receipt INTEGER DEFAULT 1');
+      } catch (_) {}
+    }
+    if (oldVersion < 4) {
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN bkash_number TEXT');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN bkash_is_merchant INTEGER DEFAULT 0');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN nagad_number TEXT');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN nagad_is_merchant INTEGER DEFAULT 0');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN rocket_number TEXT');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN rocket_is_merchant INTEGER DEFAULT 0');
       } catch (_) {}
     }
   }

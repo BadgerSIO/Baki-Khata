@@ -365,17 +365,22 @@ void main() {
       );
 
       // Action buttons presence
-      expect(find.byIcon(Icons.send_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.chat_bubble_outline_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.chat_rounded), findsOneWidget);
+      expect(find.text('Send on WhatsApp'), findsOneWidget);
+      expect(find.byIcon(Icons.share_rounded), findsOneWidget);
+      expect(find.text('Share'), findsOneWidget);
       expect(find.byIcon(Icons.download_rounded), findsOneWidget);
+      expect(find.text('Save Image'), findsOneWidget);
       expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
 
       // Tap Copy Text
       await tester.tap(find.byIcon(Icons.copy_rounded));
-      await tester.pumpAndSettle();
-
+      await tester.pump();
       // Check snackbar in English (default locale)
       expect(find.text('Voucher details copied to clipboard'), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
 
       // Verify clipboard interaction
       expect(log.any((call) => call.method == 'Clipboard.setData'), isTrue);
@@ -402,13 +407,62 @@ void main() {
         ),
       );
 
+      // Action buttons in Bengali
+      expect(find.byIcon(Icons.chat_rounded), findsOneWidget);
+      expect(find.text('WhatsApp-এ পাঠান'), findsOneWidget);
+      expect(find.byIcon(Icons.share_rounded), findsOneWidget);
+      expect(find.text('শেয়ার করুন'), findsOneWidget);
+      expect(find.byIcon(Icons.download_rounded), findsOneWidget);
+      expect(find.text('ইমেজ সেভ'), findsOneWidget);
+
       // Tap Copy Text
       await tester.tap(find.byIcon(Icons.copy_rounded));
-      await tester.pumpAndSettle();
-
+      await tester.pump();
       // Check snackbar in Bengali
       expect(find.text('ভাউচারের বিবরণ ক্লিপবোর্ডে কপি করা হয়েছে'), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
       expect(log.any((call) => call.method == 'Clipboard.setData'), isTrue);
+    });
+
+    testWidgets('prompts gracefully when customer has no phone number', (tester) async {
+      final noPhoneCustomer = Customer(
+        id: 'cust-no-phone',
+        userId: 'user-1',
+        name: 'No Phone Customer',
+        phone: null,
+        createdAt: testDate,
+        updatedAt: testDate,
+      );
+
+      final noPhoneData = VoucherData.fromTransaction(
+        transaction: tx,
+        customer: noPhoneCustomer,
+        settings: testSettings,
+        balance: snapshot,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('bn'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: Scaffold(
+            body: VoucherPreviewSheet(data: noPhoneData),
+          ),
+        ),
+      );
+
+      // Tap WhatsApp button
+      await tester.tap(find.text('WhatsApp-এ পাঠান'));
+      await tester.pumpAndSettle();
+
+      // Verify graceful dialog prompt appears
+      expect(find.text('ফোন নম্বর নেই'), findsOneWidget);
+      expect(find.textContaining('কাস্টমারের কোনো ফোন নম্বর সেভ করা নেই'), findsOneWidget);
+      expect(find.text('বাতিল'), findsOneWidget);
+      expect(find.text('শেয়ার করুন'), findsWidgets);
     });
   });
 }

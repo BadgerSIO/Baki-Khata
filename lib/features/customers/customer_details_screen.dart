@@ -3,13 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/locale_provider.dart';
 import '../../core/theme.dart';
+import '../../data/models/app_settings.dart';
 import '../../data/models/customer.dart';
 import '../../data/models/transaction.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../reminders/services/reminder_tracker_service.dart';
+import '../reminders/widgets/whatsapp_reminder_sheet.dart';
 import '../shared/quick_action_dialogs.dart';
 
 class CustomerDetailsScreen extends ConsumerWidget {
@@ -27,6 +31,14 @@ class CustomerDetailsScreen extends ConsumerWidget {
         ref.watch(customerTransactionsStreamProvider(customerId));
     final settings = ref.watch(settingsStreamProvider).value;
     final currency = settings?.currencySymbol ?? '৳';
+    final effectiveSettings = settings ??
+        AppSettings(
+          userId: customerId,
+          shopName: 'My Shop',
+          currencySymbol: currency,
+          updatedAt: DateTime.now(),
+        );
+    final isBengali = ref.watch(localeProvider).languageCode == 'bn';
     final theme = Theme.of(context);
 
     return customersAsync.when(
@@ -149,14 +161,29 @@ class CustomerDetailsScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       // 1. Header Card
-                      _buildHeaderCard(context, ref, customer, theme),
+                      _buildHeaderCard(
+                        context: context,
+                        ref: ref,
+                        customer: customer,
+                        theme: theme,
+                        balance: balance,
+                        settings: effectiveSettings,
+                        lastTransactionDate: sortedTransactions.firstOrNull?.date,
+                      ),
 
                       // 2. Balance Summary Card
                       _buildBalanceSummaryCard(
+                        context: context,
+                        ref: ref,
+                        customer: customer,
+                        balance: balance,
+                        settings: effectiveSettings,
+                        lastTransactionDate: sortedTransactions.firstOrNull?.date,
                         balanceStatusLabel: balanceStatusLabel,
                         balanceText: balanceText,
                         balanceTextColor: balanceTextColor,
                         balanceBgColor: balanceBgColor,
+                        isBengali: isBengali,
                       ),
 
                       // 3. Action Buttons: Add Baki & Record Payment
@@ -226,12 +253,15 @@ class CustomerDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeaderCard(
-    BuildContext context,
-    WidgetRef ref,
-    Customer customer,
-    ThemeData theme,
-  ) {
+  Widget _buildHeaderCard({
+    required BuildContext context,
+    required WidgetRef ref,
+    required Customer customer,
+    required ThemeData theme,
+    required double balance,
+    required AppSettings settings,
+    DateTime? lastTransactionDate,
+  }) {
     final initial = customer.name.trim().isNotEmpty
         ? customer.name.trim()[0].toUpperCase()
         : '?';
@@ -315,69 +345,113 @@ class CustomerDetailsScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 6),
-              InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: () async {
-                  final phoneDigits =
-                      customer.phone!.replaceAll(RegExp(r'\s+'), '');
-                  final phoneUri = Uri(scheme: 'tel', path: phoneDigits);
-                  if (await canLaunchUrl(phoneUri)) {
-                    await launchUrl(phoneUri);
-                  } else if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Could not open dialer for ${customer.phone}',
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () async {
+                        final phoneDigits =
+                            customer.phone!.replaceAll(RegExp(r'\s+'), '');
+                        final phoneUri = Uri(scheme: 'tel', path: phoneDigits);
+                        if (await canLaunchUrl(phoneUri)) {
+                          await launchUrl(phoneUri);
+                        } else if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Could not open dialer for ${customer.phone}',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 4),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryContainer
+                                    .withValues(alpha: 0.5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.phone_rounded,
+                                size: 16,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                customer.phone!.trim(),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Call',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF78909C),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  }
-                },
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color:
-                              AppColors.primaryContainer.withValues(alpha: 0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.phone_rounded,
-                          size: 16,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        customer.phone!.trim(),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const Spacer(),
-                      const Text(
-                        'Call',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF78909C),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.chevron_right_rounded,
-                        size: 18,
-                        color: Color(0xFF78909C),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () {
+                      showWhatsAppReminderSheet(
+                        context,
+                        ref,
+                        customer: customer,
+                        balance: balance,
+                        settings: settings,
+                        lastTransactionDate: lastTransactionDate,
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 7),
+                      decoration: BoxDecoration(
+                        color:
+                            const Color(0xFF25D366).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline_rounded,
+                            size: 15,
+                            color: Color(0xFF25D366),
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            'WhatsApp',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF25D366),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ],
@@ -387,10 +461,17 @@ class CustomerDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildBalanceSummaryCard({
+    required BuildContext context,
+    required WidgetRef ref,
+    required Customer customer,
+    required double balance,
+    required AppSettings settings,
+    DateTime? lastTransactionDate,
     required String balanceStatusLabel,
     required String balanceText,
     required Color balanceTextColor,
     required Color balanceBgColor,
+    required bool isBengali,
   }) {
     return Card(
       elevation: 0,
@@ -442,7 +523,200 @@ class CustomerDetailsScreen extends ConsumerWidget {
                 color: balanceTextColor,
               ),
             ),
+            const SizedBox(height: 14),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            _buildReminderBanner(
+              context: context,
+              ref: ref,
+              customer: customer,
+              balance: balance,
+              settings: settings,
+              lastTransactionDate: lastTransactionDate,
+              isBengali: isBengali,
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReminderBanner({
+    required BuildContext context,
+    required WidgetRef ref,
+    required Customer customer,
+    required double balance,
+    required AppSettings settings,
+    DateTime? lastTransactionDate,
+    required bool isBengali,
+  }) {
+    final l10n = AppLocalizations.of(context);
+    final hasPhone =
+        customer.phone != null && customer.phone!.trim().isNotEmpty;
+
+    if (!hasPhone) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEFF3F1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE0E5E2)),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.phone_disabled_outlined,
+              size: 18,
+              color: Color(0xFF78909C),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                l10n?.addPhoneToRemind ?? 'Add phone number to send reminder',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF546E7A),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                foregroundColor: AppColors.primary,
+              ),
+              onPressed: () => showEditCustomerDialog(context, ref, customer),
+              child: Text(
+                l10n?.addPhoneNumber ?? '+ Add Phone',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final isDue = balance > 0;
+    final lastReminderAsync =
+        ref.watch(customerLastReminderProvider(customer.id));
+    final lastReminder = lastReminderAsync.value;
+    final relativeTime = ReminderTrackerService.formatRelativeTime(
+      lastReminder,
+      isBengali: isBengali,
+    );
+
+    final title = isDue
+        ? (l10n?.sendDueReminder ?? 'Send Due Reminder')
+        : (l10n?.sendStatement ?? 'Send Statement');
+
+    final subtitle = relativeTime != null
+        ? (l10n?.lastReminded(relativeTime) ?? 'Last reminded: $relativeTime')
+        : (isDue
+            ? (isBengali
+                ? 'হিসাব পরিশোধের অনুরোধ পাঠান'
+                : 'Send payment reminder')
+            : (isBengali
+                ? 'হিসাব বিবরণী পাঠান'
+                : 'Share current ledger statement'));
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          showWhatsAppReminderSheet(
+            context,
+            ref,
+            customer: customer,
+            balance: balance,
+            settings: settings,
+            lastTransactionDate: lastTransactionDate,
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF25D366).withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: const Color(0xFF25D366).withValues(alpha: 0.35),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF25D366),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1B5E20),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: relativeTime != null
+                            ? const Color(0xFF2E7D32)
+                            : const Color(0xFF546E7A),
+                        fontWeight: relativeTime != null
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF25D366),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.send_rounded,
+                      color: Colors.white,
+                      size: 13,
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      'WhatsApp',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

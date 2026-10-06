@@ -86,6 +86,8 @@ void main() {
     // 2. Verify Balance Summary Card (1500 baki - 500 payment = 1000 Due)
     expect(find.text('Current Balance'), findsOneWidget);
     expect(find.text('Due ৳1,000'), findsOneWidget);
+    expect(find.text('Send Due Reminder'), findsOneWidget);
+    expect(find.text('WhatsApp'), findsNWidgets(2)); // in Phone row and in Reminder Banner
 
     // 3. Verify Two Action Buttons
     expect(find.text('Give Credit'), findsOneWidget);

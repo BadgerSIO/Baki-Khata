@@ -277,6 +277,36 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     );
   }
 
+  String _formatCleanDescription(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return '';
+    var text = raw.trim();
+    if (text.contains('[ITEMS]') && text.contains('[/ITEMS]')) {
+      final startIndex = text.indexOf('[ITEMS]');
+      final endIndex = text.indexOf('[/ITEMS]');
+      final itemsBlock = text.substring(startIndex + 7, endIndex).trim();
+      final outsideText = (text.substring(0, startIndex) + text.substring(endIndex + 8)).trim();
+
+      final lines = itemsBlock.split('\n').where((l) => l.trim().isNotEmpty).toList();
+      final names = <String>[];
+      for (final line in lines) {
+        final parts = line.split('|');
+        if (parts.isNotEmpty && parts[0].trim().isNotEmpty) {
+          names.add(parts[0].trim());
+        }
+      }
+
+      final itemsSummary = names.isNotEmpty ? names.join(', ') : '';
+      if (outsideText.isNotEmpty && itemsSummary.isNotEmpty) {
+        return '$outsideText ($itemsSummary)';
+      } else if (itemsSummary.isNotEmpty) {
+        return itemsSummary;
+      } else if (outsideText.isNotEmpty) {
+        return outsideText;
+      }
+    }
+    return text;
+  }
+
   Widget _buildTransactionCard({
     required BuildContext context,
     required AppTransaction tx,
@@ -290,6 +320,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final bgColor = isBaki ? AppColors.debtBg : AppColors.paymentBg;
     final sign = isBaki ? '+ ' : '- ';
     final customerName = customer?.name ?? (l10n?.customerName ?? 'Customer');
+    final cleanDescription = _formatCleanDescription(tx.description);
 
     return Card(
       elevation: 0,
@@ -304,7 +335,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Type Icon
+            // Type Icon (Vertically centered)
             Container(
               width: 40,
               height: 40,
@@ -322,34 +353,54 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             ),
             const SizedBox(width: 12),
 
-            // Customer name, date & description
+            // Main Details Column
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    customerName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: Color(0xFF1E2925),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  // Row 1: Customer Name and Amount
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          customerName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Color(0xFF1E2925),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$sign$currency ${moneyFormat.format(tx.amount)}',
+                        style: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
+
+                  // Row 2: Date, Description, and Action Buttons
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         DateFormat.yMMMd().format(tx.date.toLocal()),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF78909C),
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (tx.description != null &&
-                          tx.description!.trim().isNotEmpty) ...[
+                      if (cleanDescription.isNotEmpty) ...[
                         const Text(
                           ' • ',
                           style: TextStyle(
@@ -359,7 +410,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         ),
                         Expanded(
                           child: Text(
-                            tx.description!.trim(),
+                            cleanDescription,
                             style: const TextStyle(
                               fontSize: 12,
                               color: Color(0xFF60706B),
@@ -368,81 +419,67 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                      ] else ...[
+                        const Spacer(),
                       ],
+                      const SizedBox(width: 8),
+
+                      // Action Buttons
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          InkWell(
+                            onTap: () => launchVoucherForTransaction(context, ref, tx, forceShow: true),
+                            borderRadius: BorderRadius.circular(6),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              child: Icon(
+                                Icons.receipt_long_rounded,
+                                color: AppColors.primary,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          InkWell(
+                            onTap: () => showTransactionDialog(
+                              context,
+                              ref,
+                              existingTransaction: tx,
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              child: Icon(
+                                Icons.edit_outlined,
+                                color: Color(0xFF78909C),
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          InkWell(
+                            onTap: () => _confirmDeleteTransaction(
+                              tx,
+                              customerName,
+                              currency,
+                              l10n,
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              child: Icon(
+                                Icons.delete_outline_rounded,
+                                color: Color(0xFFB0BEC5),
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ],
-              ),
-            ),
-
-            const SizedBox(width: 8),
-
-            // Amount number
-            Text(
-              '$sign$currency ${moneyFormat.format(tx.amount)}',
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
-            ),
-
-            const SizedBox(width: 4),
-
-            // View Voucher Icon
-            IconButton(
-              icon: const Icon(
-                Icons.receipt_long_rounded,
-                color: AppColors.primary,
-                size: 20,
-              ),
-              tooltip: 'View Voucher',
-              visualDensity: VisualDensity.compact,
-              padding: const EdgeInsets.all(6),
-              constraints: const BoxConstraints(),
-              onPressed: () => launchVoucherForTransaction(context, ref, tx, forceShow: true),
-            ),
-
-            const SizedBox(width: 2),
-
-            // Dedicated Edit Icon
-            IconButton(
-              icon: const Icon(
-                Icons.edit_outlined,
-                color: Color(0xFF78909C),
-                size: 20,
-              ),
-              tooltip: l10n?.edit ?? 'Edit',
-              visualDensity: VisualDensity.compact,
-              padding: const EdgeInsets.all(6),
-              constraints: const BoxConstraints(),
-              onPressed: () {
-                showTransactionDialog(
-                  context,
-                  ref,
-                  existingTransaction: tx,
-                );
-              },
-            ),
-
-            const SizedBox(width: 2),
-
-            // Delete Icon with confirmation dialog
-            IconButton(
-              icon: const Icon(
-                Icons.delete_outline_rounded,
-                color: Color(0xFFB0BEC5),
-                size: 20,
-              ),
-              tooltip: l10n?.delete ?? 'Delete',
-              visualDensity: VisualDensity.compact,
-              padding: const EdgeInsets.all(6),
-              constraints: const BoxConstraints(),
-              onPressed: () => _confirmDeleteTransaction(
-                tx,
-                customerName,
-                currency,
-                l10n,
               ),
             ),
           ],

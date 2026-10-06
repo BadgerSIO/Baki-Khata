@@ -79,6 +79,13 @@ class SettingsRepository {
     String? shopPhone,
     String? shopAddress,
     bool? autoShowReceipt,
+    String? bkashNumber,
+    bool? bkashIsMerchant,
+    String? nagadNumber,
+    bool? nagadIsMerchant,
+    String? rocketNumber,
+    bool? rocketIsMerchant,
+    bool overridePaymentMethods = false,
   }) async {
     final now = DateTime.now().toUtc();
     final current = await getSettings();
@@ -89,6 +96,18 @@ class SettingsRepository {
       shopAddress: shopAddress ?? current.shopAddress,
       currencySymbol: currencySymbol,
       autoShowReceipt: autoShowReceipt ?? current.autoShowReceipt,
+      bkashNumber: overridePaymentMethods
+          ? bkashNumber
+          : (bkashNumber ?? current.bkashNumber),
+      bkashIsMerchant: bkashIsMerchant ?? current.bkashIsMerchant,
+      nagadNumber: overridePaymentMethods
+          ? nagadNumber
+          : (nagadNumber ?? current.nagadNumber),
+      nagadIsMerchant: nagadIsMerchant ?? current.nagadIsMerchant,
+      rocketNumber: overridePaymentMethods
+          ? rocketNumber
+          : (rocketNumber ?? current.rocketNumber),
+      rocketIsMerchant: rocketIsMerchant ?? current.rocketIsMerchant,
       updatedAt: now,
     );
 

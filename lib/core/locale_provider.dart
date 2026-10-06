@@ -49,3 +49,5 @@ class LocaleNotifier extends Notifier<Locale> {
 final localeNotifierProvider = NotifierProvider<LocaleNotifier, Locale>(() {
   return LocaleNotifier();
 });
+
+final localeProvider = localeNotifierProvider;

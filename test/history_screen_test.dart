@@ -214,12 +214,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Edit Transaction'), findsNothing);
 
-      // Verify amount, edit icon, and delete icon are vertically centered
-      final amountCenter = tester.getCenter(find.text('+ ৳ 1,200.00'));
+      // Verify action icons are vertically centered with each other on the secondary row
       final editIconCenter = tester.getCenter(find.byIcon(Icons.edit_outlined));
       final deleteIconCenter = tester.getCenter(find.byIcon(Icons.delete_outline_rounded));
 
-      expect((amountCenter.dy - editIconCenter.dy).abs(), lessThanOrEqualTo(1.0));
       expect((editIconCenter.dy - deleteIconCenter.dy).abs(), lessThanOrEqualTo(1.0));
 
       // Tapping dedicated edit icon opens edit transaction dialog

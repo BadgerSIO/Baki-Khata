@@ -5,10 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:gal/gal.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'voucher_model.dart';
+
+enum WhatsAppLaunchStatus {
+  success,
+  noPhoneNumber,
+  notInstalled,
+  error,
+}
 
 class VoucherService {
   /// Generates human-friendly, formatted WhatsApp text for the transaction memo.
@@ -116,28 +124,73 @@ class VoucherService {
     }
   }
 
-  /// Sends the formatted voucher text directly to the customer on WhatsApp via wa.me URL.
+  /// Directly opens WhatsApp with the customer's chat inbox open and voucher text pre-filled.
+  static Future<WhatsAppLaunchStatus> openWhatsAppDirectChat({
+    required VoucherData data,
+    bool isBengali = true,
+  }) async {
+    final phone = data.customer.phone;
+    final normPhone = PhoneUtils.normalizeForWhatsApp(phone);
+    if (normPhone == null) {
+      return WhatsAppLaunchStatus.noPhoneNumber;
+    }
+
+    final text = generateTextReceipt(data, isBengali: isBengali);
+    final encoded = Uri.encodeComponent(text);
+
+    // Direct WhatsApp scheme (fastest, directly opens into WhatsApp app)
+    final directWaUri = Uri.parse('whatsapp://send?phone=$normPhone&text=$encoded');
+    // Universal wa.me link (standard fallback)
+    final universalWaUri = Uri.parse('https://wa.me/$normPhone?text=$encoded');
+
+    try {
+      if (await canLaunchUrl(directWaUri)) {
+        final launched = await launchUrl(directWaUri, mode: LaunchMode.externalApplication);
+        if (launched) return WhatsAppLaunchStatus.success;
+      }
+
+      if (await canLaunchUrl(universalWaUri)) {
+        final launched = await launchUrl(universalWaUri, mode: LaunchMode.externalApplication);
+        if (launched) return WhatsAppLaunchStatus.success;
+      }
+
+      return WhatsAppLaunchStatus.notInstalled;
+    } catch (e) {
+      debugPrint('[VoucherService] Failed to launch WhatsApp: $e');
+      return WhatsAppLaunchStatus.error;
+    }
+  }
+
+  /// Saves the rendered voucher image directly to the device's public photo gallery using gal.
+  static Future<bool> saveVoucherToGallery({
+    required GlobalKey repaintKey,
+    required VoucherData data,
+  }) async {
+    final bytes = await captureWidgetPng(repaintKey);
+    if (bytes == null) return false;
+
+    try {
+      final sanitizedId = data.voucherNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+      final fileName = 'voucher_${sanitizedId}_${DateTime.now().millisecondsSinceEpoch}';
+      await Gal.putImageBytes(bytes, name: fileName);
+      return true;
+    } catch (e) {
+      debugPrint('[VoucherService] Failed to save image to gallery: $e');
+      return false;
+    }
+  }
+
+  /// Sends the formatted voucher text directly to the customer on WhatsApp via wa.me URL (Legacy/Compatibility).
   static Future<bool> sendWhatsAppText(
     BuildContext context,
     VoucherData data, {
     bool isBengali = true,
   }) async {
+    final status = await openWhatsAppDirectChat(data: data, isBengali: isBengali);
+    if (status == WhatsAppLaunchStatus.success) return true;
+
+    // Fallback: If phone not found or WhatsApp failed, share text via system share sheet
     final text = generateTextReceipt(data, isBengali: isBengali);
-    final normPhone = PhoneUtils.normalizeForWhatsApp(data.customer.phone);
-
-    if (normPhone != null) {
-      final encoded = Uri.encodeComponent(text);
-      final waUri = Uri.parse('https://wa.me/$normPhone?text=$encoded');
-      try {
-        if (await canLaunchUrl(waUri)) {
-          return await launchUrl(waUri, mode: LaunchMode.externalApplication);
-        }
-      } catch (e) {
-        debugPrint('[VoucherService] Could not launch wa.me: $e');
-      }
-    }
-
-    // Fallback: If phone not found or wa.me failed, share text via system share sheet
     final result = await Share.share(
       text,
       subject: '${data.settings.shopName} - ${data.voucherNumber}',
@@ -145,7 +198,7 @@ class VoucherService {
     return result.status == ShareResultStatus.success;
   }
 
-  /// Captures the voucher image and shares it via Share.shareXFiles (which allows sending to WhatsApp).
+  /// Captures the voucher image and shares it via Share.shareXFiles (universal system share sheet).
   static Future<bool> shareVoucherImage({
     required GlobalKey repaintKey,
     required VoucherData data,
@@ -176,7 +229,7 @@ class VoucherService {
     }
   }
 
-  /// Saves the voucher image to device cache and presents the user with save/export options.
+  /// Saves the voucher image to device cache and presents the user with save/export options (Legacy/Compatibility).
   static Future<String?> saveVoucherImageToDevice({
     required GlobalKey repaintKey,
     required VoucherData data,

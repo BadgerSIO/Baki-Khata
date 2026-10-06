@@ -1171,6 +1171,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Track customer credit, the simple way'**
   String get trackCreditTagline;
+
+  /// No description provided for @sendDueReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Due Reminder'**
+  String get sendDueReminder;
+
+  /// No description provided for @sendStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Statement'**
+  String get sendStatement;
+
+  /// No description provided for @whatsappReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp Reminder'**
+  String get whatsappReminder;
+
+  /// No description provided for @whatsappStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp Statement'**
+  String get whatsappStatement;
+
+  /// No description provided for @politeTone.
+  ///
+  /// In en, this message translates to:
+  /// **'Polite'**
+  String get politeTone;
+
+  /// No description provided for @urgentTone.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get urgentTone;
+
+  /// No description provided for @statementTone.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement'**
+  String get statementTone;
+
+  /// No description provided for @addPhoneToRemind.
+  ///
+  /// In en, this message translates to:
+  /// **'Add phone number to send reminder'**
+  String get addPhoneToRemind;
+
+  /// No description provided for @addPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add Phone'**
+  String get addPhoneNumber;
+
+  /// No description provided for @lastReminded.
+  ///
+  /// In en, this message translates to:
+  /// **'Last reminded: {time}'**
+  String lastReminded(String time);
+
+  /// No description provided for @reminderMessageCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder message copied to clipboard'**
+  String get reminderMessageCopied;
+
+  /// No description provided for @openWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open WhatsApp'**
+  String get openWhatsApp;
+
+  /// No description provided for @shareViaOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Share via Other'**
+  String get shareViaOther;
+
+  /// No description provided for @copyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Message'**
+  String get copyMessage;
+
+  /// No description provided for @whatsappNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp is not installed'**
+  String get whatsappNotInstalled;
+
+  /// No description provided for @couldNotLaunchWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open WhatsApp'**
+  String get couldNotLaunchWhatsApp;
+
+  /// No description provided for @paymentMethods.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital Payment Methods'**
+  String get paymentMethods;
+
+  /// No description provided for @paymentMethodsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure bKash, Nagad & Rocket for reminders'**
+  String get paymentMethodsSubtitle;
+
+  /// No description provided for @bkash.
+  ///
+  /// In en, this message translates to:
+  /// **'bKash'**
+  String get bkash;
+
+  /// No description provided for @nagad.
+  ///
+  /// In en, this message translates to:
+  /// **'Nagad'**
+  String get nagad;
+
+  /// No description provided for @rocket.
+  ///
+  /// In en, this message translates to:
+  /// **'Rocket'**
+  String get rocket;
+
+  /// No description provided for @accountType.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Type'**
+  String get accountType;
+
+  /// No description provided for @personal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get personal;
+
+  /// No description provided for @merchant.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchant'**
+  String get merchant;
+
+  /// No description provided for @sendMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Money'**
+  String get sendMoney;
+
+  /// No description provided for @makePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Make Payment'**
+  String get makePayment;
+
+  /// No description provided for @trxIdConfirmationPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'After payment, please reply with TrxID or screenshot to confirm.'**
+  String get trxIdConfirmationPrompt;
+
+  /// No description provided for @addPaymentMethodsTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add bKash or Nagad in Settings to include payment info in reminders'**
+  String get addPaymentMethodsTip;
+
+  /// No description provided for @configureInSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get configureInSettings;
+
+  /// No description provided for @payAtShopPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Kindly request to settle the balance at the shop.'**
+  String get payAtShopPrompt;
+
+  /// No description provided for @contactOrShopPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay at shop or contact:'**
+  String get contactOrShopPrompt;
 }
 
 class _AppLocalizationsDelegate

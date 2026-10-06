@@ -235,6 +235,13 @@ class _MockSettingsRepository implements SettingsRepository {
     String? shopPhone,
     String? shopAddress,
     bool? autoShowReceipt,
+    String? bkashNumber,
+    bool? bkashIsMerchant,
+    String? nagadNumber,
+    bool? nagadIsMerchant,
+    String? rocketNumber,
+    bool? rocketIsMerchant,
+    bool overridePaymentMethods = false,
   }) async {
     updateCalls++;
     updatedSettings = AppSettings(
@@ -244,6 +251,12 @@ class _MockSettingsRepository implements SettingsRepository {
       shopAddress: shopAddress,
       currencySymbol: currencySymbol,
       autoShowReceipt: autoShowReceipt ?? true,
+      bkashNumber: bkashNumber ?? initialSettings.bkashNumber,
+      bkashIsMerchant: bkashIsMerchant ?? initialSettings.bkashIsMerchant,
+      nagadNumber: nagadNumber ?? initialSettings.nagadNumber,
+      nagadIsMerchant: nagadIsMerchant ?? initialSettings.nagadIsMerchant,
+      rocketNumber: rocketNumber ?? initialSettings.rocketNumber,
+      rocketIsMerchant: rocketIsMerchant ?? initialSettings.rocketIsMerchant,
       updatedAt: DateTime.now(),
     );
     return updatedSettings!;

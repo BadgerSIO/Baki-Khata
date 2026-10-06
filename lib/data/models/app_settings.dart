@@ -5,6 +5,12 @@ class AppSettings {
   final String? shopAddress;
   final String currencySymbol;
   final bool autoShowReceipt;
+  final String? bkashNumber;
+  final bool bkashIsMerchant;
+  final String? nagadNumber;
+  final bool nagadIsMerchant;
+  final String? rocketNumber;
+  final bool rocketIsMerchant;
   final DateTime updatedAt;
 
   const AppSettings({
@@ -14,8 +20,19 @@ class AppSettings {
     this.shopAddress,
     this.currencySymbol = '৳',
     this.autoShowReceipt = true,
+    this.bkashNumber,
+    this.bkashIsMerchant = false,
+    this.nagadNumber,
+    this.nagadIsMerchant = false,
+    this.rocketNumber,
+    this.rocketIsMerchant = false,
     required this.updatedAt,
   });
+
+  bool get hasDigitalPaymentMethods =>
+      (bkashNumber != null && bkashNumber!.trim().isNotEmpty) ||
+      (nagadNumber != null && nagadNumber!.trim().isNotEmpty) ||
+      (rocketNumber != null && rocketNumber!.trim().isNotEmpty);
 
   AppSettings copyWith({
     String? userId,
@@ -24,6 +41,12 @@ class AppSettings {
     String? shopAddress,
     String? currencySymbol,
     bool? autoShowReceipt,
+    String? bkashNumber,
+    bool? bkashIsMerchant,
+    String? nagadNumber,
+    bool? nagadIsMerchant,
+    String? rocketNumber,
+    bool? rocketIsMerchant,
     DateTime? updatedAt,
   }) {
     return AppSettings(
@@ -33,6 +56,12 @@ class AppSettings {
       shopAddress: shopAddress ?? this.shopAddress,
       currencySymbol: currencySymbol ?? this.currencySymbol,
       autoShowReceipt: autoShowReceipt ?? this.autoShowReceipt,
+      bkashNumber: bkashNumber ?? this.bkashNumber,
+      bkashIsMerchant: bkashIsMerchant ?? this.bkashIsMerchant,
+      nagadNumber: nagadNumber ?? this.nagadNumber,
+      nagadIsMerchant: nagadIsMerchant ?? this.nagadIsMerchant,
+      rocketNumber: rocketNumber ?? this.rocketNumber,
+      rocketIsMerchant: rocketIsMerchant ?? this.rocketIsMerchant,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -46,21 +75,22 @@ class AppSettings {
       'shop_address': shopAddress,
       'currency_symbol': currencySymbol,
       'auto_show_receipt': autoShowReceipt ? 1 : 0,
+      'bkash_number': bkashNumber,
+      'bkash_is_merchant': bkashIsMerchant ? 1 : 0,
+      'nagad_number': nagadNumber,
+      'nagad_is_merchant': nagadIsMerchant ? 1 : 0,
+      'rocket_number': rocketNumber,
+      'rocket_is_merchant': rocketIsMerchant ? 1 : 0,
       'updated_at': updatedAt.toIso8601String(),
     };
   }
 
   factory AppSettings.fromMap(Map<String, dynamic> map) {
-    final autoReceiptRaw = map['auto_show_receipt'];
-    final bool autoReceipt;
-    if (autoReceiptRaw == null) {
-      autoReceipt = true;
-    } else if (autoReceiptRaw is bool) {
-      autoReceipt = autoReceiptRaw;
-    } else if (autoReceiptRaw is num) {
-      autoReceipt = autoReceiptRaw == 1;
-    } else {
-      autoReceipt = autoReceiptRaw.toString().toLowerCase() == 'true';
+    bool parseBool(dynamic raw, {bool defaultValue = false}) {
+      if (raw == null) return defaultValue;
+      if (raw is bool) return raw;
+      if (raw is num) return raw == 1;
+      return raw.toString().toLowerCase() == 'true';
     }
 
     return AppSettings(
@@ -69,7 +99,13 @@ class AppSettings {
       shopPhone: map['shop_phone'] as String?,
       shopAddress: map['shop_address'] as String?,
       currencySymbol: (map['currency_symbol'] as String?) ?? '৳',
-      autoShowReceipt: autoReceipt,
+      autoShowReceipt: parseBool(map['auto_show_receipt'], defaultValue: true),
+      bkashNumber: map['bkash_number'] as String?,
+      bkashIsMerchant: parseBool(map['bkash_is_merchant'], defaultValue: false),
+      nagadNumber: map['nagad_number'] as String?,
+      nagadIsMerchant: parseBool(map['nagad_is_merchant'], defaultValue: false),
+      rocketNumber: map['rocket_number'] as String?,
+      rocketIsMerchant: parseBool(map['rocket_is_merchant'], defaultValue: false),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
   }
@@ -83,6 +119,12 @@ class AppSettings {
       'shop_address': shopAddress,
       'currency_symbol': currencySymbol,
       'auto_show_receipt': autoShowReceipt,
+      'bkash_number': bkashNumber,
+      'bkash_is_merchant': bkashIsMerchant,
+      'nagad_number': nagadNumber,
+      'nagad_is_merchant': nagadIsMerchant,
+      'rocket_number': rocketNumber,
+      'rocket_is_merchant': rocketIsMerchant,
       'updated_at': updatedAt.toIso8601String(),
     };
   }
