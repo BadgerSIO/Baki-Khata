@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/current_user_service.dart';
+import '../../core/locale_provider.dart';
 import '../../core/supabase_client.dart';
 import '../../core/theme.dart';
 import '../../data/models/app_settings.dart';
@@ -12,6 +13,7 @@ import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
 import '../../data/sync/sync_service.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../auth/account_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -91,10 +93,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             currencySymbol: curr.isEmpty ? '৳' : curr,
           );
       if (showFeedback && mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Shop information saved'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(l10n?.shopInfoSaved ?? 'Shop information saved'),
+            duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -121,9 +124,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _handleManualSync() async {
     final syncStatus = ref.read(syncStatusProvider);
     if (syncStatus == SyncStatus.guest) {
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please sign in to back up and sync your data with the cloud.'),
+        SnackBar(
+          content: Text(l10n?.guestWarning ?? 'Please sign in to back up and sync your data with the cloud.'),
         ),
       );
       return;
@@ -154,27 +158,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  String _getStatusLabel(SyncStatus status) {
+  String _getStatusLabel(SyncStatus status, AppLocalizations? l10n) {
     switch (status) {
       case SyncStatus.guest:
-        return 'Guest Mode';
+        return l10n?.guestMode ?? 'Guest Mode';
       case SyncStatus.idle:
-        return 'Synced';
+        return l10n?.synced ?? 'Synced';
       case SyncStatus.syncing:
-        return 'Syncing...';
+        return l10n?.syncing ?? 'Syncing...';
       case SyncStatus.offline:
-        return 'Offline';
+        return l10n?.offline ?? 'Offline';
       case SyncStatus.error:
-        return 'Sync Error';
+        return l10n?.syncError ?? 'Sync Error';
     }
   }
 
-  String _formatLastSynced(DateTime? dt) {
-    if (dt == null) return 'Not synced yet';
+  String _formatLastSynced(DateTime? dt, AppLocalizations? l10n) {
+    if (dt == null) return l10n?.neverSynced ?? 'Never synced';
     final now = DateTime.now();
     final diff = now.difference(dt);
     if (diff.inSeconds < 60) {
-      return 'Just now';
+      return l10n?.justNow ?? 'Just now';
     } else if (diff.inMinutes < 60) {
       return '${diff.inMinutes}m ago';
     } else if (now.day == dt.day &&
@@ -194,17 +198,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  Future<void> _confirmSignOut() async {
+  Future<void> _confirmSignOut(AppLocalizations? l10n) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Sign Out?'),
+        title: Text(l10n?.signOutTitle ?? 'Sign Out?'),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        content: const Text(
-          'Are you sure you want to sign out of Baki Khata? Any pending offline data remains safely stored on this device.',
+        content: Text(
+          l10n?.signOutConfirm ??
+              'Are you sure you want to sign out of Baki Khata? Any pending offline data remains safely stored on this device.',
         ),
         actions: [
           Row(
@@ -220,9 +225,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     side: const BorderSide(color: Color(0xFFCFD8DC)),
                     foregroundColor: const Color(0xFF546E7A),
                   ),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  child: Text(
+                    l10n?.cancel ?? 'Cancel',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -237,9 +242,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                   onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text(
-                    'Sign Out',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    l10n?.signOut ?? 'Sign Out',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -272,6 +277,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final lastSynced = ref.watch(lastSyncedTimeProvider);
     final lastSyncError = ref.watch(lastSyncErrorProvider);
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final currentLocale = ref.watch(localeNotifierProvider);
     final statusColor = _getStatusColor(syncStatus);
     final currentUserId = ref.watch(currentUserIdProvider).value ?? CurrentUserService.guestSentinel;
     final isGuest = currentUserId == CurrentUserService.guestSentinel;
@@ -311,7 +318,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _getStatusLabel(syncStatus),
+                        _getStatusLabel(syncStatus, l10n),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -339,12 +346,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Row(
+                            : Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.sync_rounded, size: 18),
-                                  SizedBox(width: 6),
-                                  Text('Sync Now'),
+                                  const Icon(Icons.sync_rounded, size: 18),
+                                  const SizedBox(width: 6),
+                                  Text(l10n?.syncNow ?? 'Sync Now'),
                                 ],
                               ),
                       ),
@@ -386,16 +393,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ],
                   const SizedBox(height: 8),
                   Text(
-                    'Last synced: ${_formatLastSynced(lastSynced)}',
+                    l10n?.lastSynced(_formatLastSynced(lastSynced, l10n)) ??
+                        'Last synced: ${_formatLastSynced(lastSynced, l10n)}',
                     style: const TextStyle(
                       fontSize: 13,
                       color: Color(0xFF60706B),
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Your records are automatically saved on this device and synced to your cloud account when online.',
-                    style: TextStyle(
+                  Text(
+                    l10n?.syncHelpText ??
+                        'Your records are automatically saved on this device and synced to your cloud account when online.',
+                    style: const TextStyle(
                       fontSize: 12,
                       color: Color(0xFF78909C),
                     ),
@@ -422,7 +431,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Row(
                     children: [
                       Text(
-                        'Shop Information',
+                        l10n?.shopInfo ?? 'Shop Information',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -432,7 +441,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         FilledButton.tonalIcon(
                           onPressed: _startEditing,
                           icon: const Icon(Icons.edit_outlined, size: 16),
-                          label: const Text('Edit'),
+                          label: Text(l10n?.edit ?? 'Edit'),
                           style: FilledButton.styleFrom(
                             minimumSize: const Size(0, 36),
                             padding: const EdgeInsets.symmetric(
@@ -445,19 +454,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         )
                       else if (_isSaving)
-                        const Row(
+                        Row(
                           children: [
-                            SizedBox(
+                            const SizedBox(
                               width: 12,
                               height: 12,
                               child: CircularProgressIndicator(
                                 strokeWidth: 1.5,
                               ),
                             ),
-                            SizedBox(width: 6),
+                            const SizedBox(width: 6),
                             Text(
-                              'Saving...',
-                              style: TextStyle(
+                              l10n?.loading ?? 'Saving...',
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w500,
@@ -468,9 +477,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Customize your shop name and currency symbol.',
-                    style: TextStyle(
+                  Text(
+                    l10n?.customizeShopDetails ?? 'Customize your shop name and currency symbol.',
+                    style: const TextStyle(
                       fontSize: 12,
                       color: Color(0xFF78909C),
                     ),
@@ -503,9 +512,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Shop Name',
-                                  style: TextStyle(
+                                Text(
+                                  l10n?.shopName ?? 'Shop Name',
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: Color(0xFF78909C),
                                     fontWeight: FontWeight.w500,
@@ -554,9 +563,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Currency Symbol',
-                                  style: TextStyle(
+                                Text(
+                                  l10n?.currencySymbol ?? 'Currency Symbol',
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: Color(0xFF78909C),
                                     fontWeight: FontWeight.w500,
@@ -583,19 +592,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     // Edit Mode Form Fields
                     TextFormField(
                       controller: _shopNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Shop Name',
+                      decoration: InputDecoration(
+                        labelText: l10n?.shopName ?? 'Shop Name',
                         hintText: 'e.g. Bhai Bhai Store',
-                        prefixIcon: Icon(Icons.storefront_rounded),
+                        prefixIcon: const Icon(Icons.storefront_rounded),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _currencyController,
-                      decoration: const InputDecoration(
-                        labelText: 'Currency Symbol',
+                      decoration: InputDecoration(
+                        labelText: l10n?.currencySymbol ?? 'Currency Symbol',
                         hintText: 'e.g. ৳, \$, ₹, €',
-                        prefixIcon: Icon(Icons.currency_exchange_rounded),
+                        prefixIcon: const Icon(Icons.currency_exchange_rounded),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -611,7 +620,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                             icon: const Icon(Icons.close_rounded, size: 18),
-                            label: const Text('Cancel'),
+                            label: Text(l10n?.cancel ?? 'Cancel'),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -634,7 +643,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     ),
                                   )
                                 : const Icon(Icons.check_rounded, size: 18),
-                            label: Text(_isSaving ? 'Saving...' : 'Save'),
+                            label: Text(_isSaving ? (l10n?.loading ?? 'Saving...') : (l10n?.save ?? 'Save')),
                           ),
                         ),
                       ],
@@ -646,7 +655,66 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 16),
 
-          // 3. Account Card
+          // 3. App Language Card
+          Card(
+            margin: EdgeInsets.zero,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Color(0xFFE0E5E2)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n?.appLanguage ?? 'App Language',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n?.selectLanguage ?? 'Select Language',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF78909C),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildLanguageOption(
+                          title: 'English',
+                          subtitle: 'Default',
+                          isSelected: currentLocale.languageCode == 'en',
+                          onTap: () {
+                            ref.read(localeNotifierProvider.notifier).setLocale(const Locale('en'));
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildLanguageOption(
+                          title: 'বাংলা',
+                          subtitle: 'Bangla',
+                          isSelected: currentLocale.languageCode == 'bn',
+                          onTap: () {
+                            ref.read(localeNotifierProvider.notifier).setLocale(const Locale('bn'));
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 4. Account Card
           Card(
             margin: EdgeInsets.zero,
             elevation: 0,
@@ -693,14 +761,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             '$currency${moneyFmt.format(totalOutstanding)} across ${customers.length} customer${customers.length == 1 ? '' : 's'} isn\'t backed up';
                       } else {
                         nudgeMessage =
-                            'Sign in to back up and sync your data to the cloud';
+                            l10n?.guestWarning ?? 'Sign in to back up and sync your data to the cloud';
                       }
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Account',
+                            l10n?.accountAndSync ?? 'Account',
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -741,7 +809,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             width: double.infinity,
                             child: FilledButton.icon(
                               icon: const Icon(Icons.login_rounded, size: 18),
-                              label: const Text('Sign In / Create Account'),
+                              label: Text(l10n?.signInOrCreateAccount ?? 'Sign In / Create Account'),
                               style: FilledButton.styleFrom(
                                 minimumSize: const Size.fromHeight(44),
                                 shape: RoundedRectangleBorder(
@@ -764,7 +832,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Account',
+                          l10n?.accountAndSync ?? 'Account',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -804,14 +872,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               ),
                             ),
                             icon: const Icon(Icons.logout_rounded, size: 18),
-                            label: const Text(
-                              'Sign Out',
-                              style: TextStyle(
+                            label: Text(
+                              l10n?.signOut ?? 'Sign Out',
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                               ),
                             ),
-                            onPressed: _confirmSignOut,
+                            onPressed: () => _confirmSignOut(l10n),
                           ),
                         ),
                       ],
@@ -820,6 +888,63 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageOption({
+    required String title,
+    required String subtitle,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFE8F5E9) : const Color(0xFFF0F4F2),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : const Color(0xFFE0E5E2),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+              size: 20,
+              color: isSelected ? AppColors.primary : const Color(0xFF78909C),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: isSelected ? AppColors.primary : const Color(0xFF191C1B),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.8)
+                          : const Color(0xFF78909C),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

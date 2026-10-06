@@ -8,6 +8,7 @@ import '../../data/models/transaction.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../shared/transaction_dialog.dart';
 
 enum HistoryFilter {
@@ -63,6 +64,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         data: (transactions) {
           final customers = customersAsync.value ?? [];
           final customerMap = {for (final c in customers) c.id: c};
+          final l10n = AppLocalizations.of(context);
 
           // Count per category for filter chip badges
           final bakiCount = transactions.where((t) => t.isBaki).length;
@@ -91,7 +93,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           final List<_HistoryListItem> items = [];
           final Map<String, List<AppTransaction>> groups = {};
           for (final tx in filtered) {
-            final header = _getDateHeader(tx.date);
+            final header = _getDateHeader(tx.date, l10n);
             groups.putIfAbsent(header, () => []).add(tx);
           }
 
@@ -109,6 +111,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 totalCount: transactions.length,
                 bakiCount: bakiCount,
                 paymentCount: paymentCount,
+                l10n: l10n,
               ),
 
               // Transaction List or Empty States
@@ -117,6 +120,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     ? _buildEmptyState(
                         isGlobalEmpty: transactions.isEmpty,
                         filter: _currentFilter,
+                        l10n: l10n,
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.only(top: 4, bottom: 80),
@@ -133,6 +137,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                               tx: tx,
                               customer: customer,
                               currency: currency,
+                              l10n: l10n,
                             );
                           }
                           return const SizedBox.shrink();
@@ -146,7 +151,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     );
   }
 
-  String _getDateHeader(DateTime date) {
+  String _getDateHeader(DateTime date, AppLocalizations? l10n) {
     final now = DateTime.now();
     final local = date.toLocal();
     final today = DateTime(now.year, now.month, now.day);
@@ -154,9 +159,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final difference = today.difference(txDay).inDays;
 
     if (difference == 0) {
-      return 'Today';
+      return l10n?.today ?? 'Today';
     } else if (difference == 1) {
-      return 'Yesterday';
+      return l10n?.yesterday ?? 'Yesterday';
     } else if (local.year == now.year) {
       return DateFormat('MMMM d').format(local);
     } else {
@@ -210,6 +215,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     required int totalCount,
     required int bakiCount,
     required int paymentCount,
+    required AppLocalizations? l10n,
   }) {
     return Container(
       color: Colors.white,
@@ -217,19 +223,19 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       child: Row(
         children: [
           _buildChip(
-            label: 'All ($totalCount)',
+            label: l10n?.historyFilterAll(totalCount) ?? 'All ($totalCount)',
             filter: HistoryFilter.all,
             activeColor: AppColors.primary,
           ),
           const SizedBox(width: 8),
           _buildChip(
-            label: 'Baki ($bakiCount)',
+            label: l10n?.historyFilterCredit(bakiCount) ?? 'Credit ($bakiCount)',
             filter: HistoryFilter.baki,
             activeColor: AppColors.debtText,
           ),
           const SizedBox(width: 8),
           _buildChip(
-            label: 'Payment ($paymentCount)',
+            label: l10n?.historyFilterPayment(paymentCount) ?? 'Payment ($paymentCount)',
             filter: HistoryFilter.payment,
             activeColor: AppColors.paymentText,
           ),
@@ -276,13 +282,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     required AppTransaction tx,
     required Customer? customer,
     required String currency,
+    required AppLocalizations? l10n,
   }) {
     final moneyFormat = NumberFormat('#,##0.00');
     final isBaki = tx.isBaki;
     final color = isBaki ? AppColors.debtText : AppColors.paymentText;
     final bgColor = isBaki ? AppColors.debtBg : AppColors.paymentBg;
     final sign = isBaki ? '+ ' : '- ';
-    final customerName = customer?.name ?? 'Unknown Customer';
+    final customerName = customer?.name ?? (l10n?.customerName ?? 'Customer');
 
     return Card(
       elevation: 0,
@@ -389,7 +396,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 color: Color(0xFF78909C),
                 size: 20,
               ),
-              tooltip: 'Edit Transaction',
+              tooltip: l10n?.edit ?? 'Edit',
               visualDensity: VisualDensity.compact,
               padding: const EdgeInsets.all(6),
               constraints: const BoxConstraints(),
@@ -411,7 +418,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 color: Color(0xFFB0BEC5),
                 size: 20,
               ),
-              tooltip: 'Delete Transaction',
+              tooltip: l10n?.delete ?? 'Delete',
               visualDensity: VisualDensity.compact,
               padding: const EdgeInsets.all(6),
               constraints: const BoxConstraints(),
@@ -419,6 +426,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 tx,
                 customerName,
                 currency,
+                l10n,
               ),
             ),
           ],
@@ -430,6 +438,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   Widget _buildEmptyState({
     required bool isGlobalEmpty,
     required HistoryFilter filter,
+    required AppLocalizations? l10n,
   }) {
     if (isGlobalEmpty) {
       return Center(
@@ -452,19 +461,20 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'No Transactions Yet',
-                style: TextStyle(
+              Text(
+                l10n?.noTransactionsYet ?? 'No Transactions Yet',
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                   color: Color(0xFF1E2925),
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'When you add baki or record payments, they will appear here in reverse chronological order.',
+              Text(
+                l10n?.noHistoryHint ??
+                    'When you give credit or record payments, they will appear here in reverse chronological order.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 13,
                   color: Color(0xFF78909C),
                 ),
@@ -476,7 +486,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     }
 
     // Empty for selected filter
-    final filterLabel = filter == HistoryFilter.baki ? 'Baki' : 'Payment';
+    final filterLabel = filter == HistoryFilter.baki
+        ? (l10n?.credit ?? 'Credit')
+        : (l10n?.payment ?? 'Payment');
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -516,20 +528,24 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     AppTransaction tx,
     String customerName,
     String currency,
+    AppLocalizations? l10n,
   ) async {
     final moneyFormat = NumberFormat('#,##0.00');
     final isBaki = tx.isBaki;
+    final typeLabel = isBaki ? (l10n?.credit ?? 'Credit') : (l10n?.payment ?? 'Payment');
+    final formattedAmount = '$currency ${moneyFormat.format(tx.amount)}';
 
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Transaction?'),
+        title: Text(l10n?.deleteTransactionTitle ?? 'Delete Transaction?'),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         content: Text(
-          'Are you sure you want to delete this ${isBaki ? "baki" : "payment"} of $currency ${moneyFormat.format(tx.amount)} for $customerName?',
+          l10n?.deleteHistoryConfirm(typeLabel, formattedAmount, customerName) ??
+              'Are you sure you want to delete this $typeLabel of $formattedAmount for $customerName?',
         ),
         actions: [
           Row(
@@ -545,9 +561,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     side: const BorderSide(color: Color(0xFFCFD8DC)),
                     foregroundColor: const Color(0xFF546E7A),
                   ),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  child: Text(
+                    l10n?.cancel ?? 'Cancel',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -562,9 +578,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     ),
                   ),
                   onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text(
-                    'Delete',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    l10n?.delete ?? 'Delete',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

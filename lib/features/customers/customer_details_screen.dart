@@ -9,6 +9,7 @@ import '../../data/models/transaction.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../shared/quick_action_dialogs.dart';
 
 class CustomerDetailsScreen extends ConsumerWidget {
@@ -68,21 +69,22 @@ class CustomerDetailsScreen extends ConsumerWidget {
         final String balanceStatusLabel;
         final String balanceText;
 
+        final l10n = AppLocalizations.of(context);
         if (balance > 0) {
           balanceTextColor = AppColors.debtText;
           balanceBgColor = AppColors.debtBg;
-          balanceStatusLabel = 'Due';
-          balanceText = 'Due $currency${badgeFormat.format(balance)}';
+          balanceStatusLabel = l10n?.netDue ?? 'Due';
+          balanceText = '${l10n?.netDue ?? "Due"} $currency${badgeFormat.format(balance)}';
         } else if (balance < 0) {
           balanceTextColor = AppColors.advanceText;
           balanceBgColor = AppColors.advanceBg;
-          balanceStatusLabel = 'Advance';
-          balanceText = 'Advance $currency${badgeFormat.format(balance.abs())}';
+          balanceStatusLabel = l10n?.advance ?? 'Advance';
+          balanceText = '${l10n?.advance ?? "Advance"} $currency${badgeFormat.format(balance.abs())}';
         } else {
           balanceTextColor = AppColors.settledText;
           balanceBgColor = AppColors.settledBg;
-          balanceStatusLabel = 'Settled';
-          balanceText = 'Settled';
+          balanceStatusLabel = l10n?.settled ?? 'Settled';
+          balanceText = l10n?.settled ?? 'Settled';
         }
 
         return Scaffold(
@@ -190,7 +192,7 @@ class CustomerDetailsScreen extends ConsumerWidget {
                 // 5. Transaction History List (Virtualized)
                 if (sortedTransactions.isEmpty)
                   SliverToBoxAdapter(
-                    child: _buildEmptyTransactionsCard(),
+                    child: _buildEmptyTransactionsCard(l10n),
                   )
                 else
                   SliverList.builder(
@@ -451,6 +453,8 @@ class CustomerDetailsScreen extends ConsumerWidget {
     WidgetRef ref,
     Customer customer,
   ) {
+    final l10n = AppLocalizations.of(context);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Row(
@@ -471,9 +475,9 @@ class CustomerDetailsScreen extends ConsumerWidget {
                 preselectedCustomerId: customer.id,
               ),
               icon: const Icon(Icons.arrow_upward_rounded, size: 20),
-              label: const Text(
-                'Add Baki',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              label: Text(
+                l10n?.giveCredit ?? 'Give Credit',
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -494,9 +498,9 @@ class CustomerDetailsScreen extends ConsumerWidget {
                 preselectedCustomerId: customer.id,
               ),
               icon: const Icon(Icons.arrow_downward_rounded, size: 20),
-              label: const Text(
-                'Record Payment',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              label: Text(
+                l10n?.recordPayment ?? 'Record Payment',
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -516,6 +520,7 @@ class CustomerDetailsScreen extends ConsumerWidget {
     final color = isBaki ? AppColors.debtText : AppColors.paymentText;
     final bgColor = isBaki ? AppColors.debtBg : AppColors.paymentBg;
     final sign = isBaki ? '+ ' : '- ';
+    final l10n = AppLocalizations.of(context);
 
     return Card(
       elevation: 0,
@@ -551,7 +556,9 @@ class CustomerDetailsScreen extends ConsumerWidget {
                   Row(
                     children: [
                       Text(
-                        isBaki ? 'Baki (Due)' : 'Payment',
+                        isBaki
+                            ? (l10n?.credit ?? 'Credit')
+                            : (l10n?.payment ?? 'Payment'),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
@@ -621,7 +628,7 @@ class CustomerDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyTransactionsCard() {
+  Widget _buildEmptyTransactionsCard(AppLocalizations? l10n) {
     return Card(
       elevation: 0,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -629,28 +636,29 @@ class CustomerDetailsScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: Color(0xFFE0E5E2)),
       ),
-      child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
         child: Column(
           children: [
-            Icon(
+            const Icon(
               Icons.receipt_long_outlined,
               size: 40,
               color: Color(0xFFB0BEC5),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'No Transactions Yet',
-              style: TextStyle(
+              l10n?.noCustomerTransactions ?? 'No Transactions Yet',
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
-              'Use Add Baki or Record Payment above to add the first transaction for this customer.',
+              l10n?.noCustomerTransactionsHint ??
+                  'Use Give Credit or Record Payment above to add the first transaction for this customer.',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 color: Color(0xFF78909C),
               ),
@@ -669,17 +677,23 @@ class CustomerDetailsScreen extends ConsumerWidget {
   ) async {
     final moneyFormat = NumberFormat('#,##0.00');
     final isBaki = tx.isBaki;
+    final l10n = AppLocalizations.of(context);
+    final deletePrompt = l10n != null
+        ? l10n.deleteTransactionConfirm(
+            isBaki ? l10n.credit : l10n.payment,
+            '$currency${moneyFormat.format(tx.amount)}',
+          )
+        : 'Are you sure you want to delete this ${isBaki ? "credit" : "payment"} of $currency${moneyFormat.format(tx.amount)}?';
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Transaction?'),
+        title: Text(l10n?.deleteTransactionTitle ?? 'Delete Transaction?'),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        content: Text(
-          'Are you sure you want to delete this ${isBaki ? "baki" : "payment"} of $currency${moneyFormat.format(tx.amount)}?',
-        ),
+        content: Text(deletePrompt),
         actions: [
           Row(
             children: [
@@ -694,9 +708,9 @@ class CustomerDetailsScreen extends ConsumerWidget {
                     side: const BorderSide(color: Color(0xFFCFD8DC)),
                     foregroundColor: const Color(0xFF546E7A),
                   ),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  child: Text(
+                    l10n?.cancel ?? 'Cancel',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -711,9 +725,9 @@ class CustomerDetailsScreen extends ConsumerWidget {
                     ),
                   ),
                   onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text(
-                    'Delete',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    l10n?.delete ?? 'Delete',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -746,100 +760,105 @@ class CustomerDetailsScreen extends ConsumerWidget {
 
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Customer?'),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Are you sure you want to delete ${customer.name}? All associated transaction records will also be permanently deleted.',
-            ),
-            if (balance != 0) ...[
-              const SizedBox(height: 14),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.debtBg,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: AppColors.debtText.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.warning_amber_rounded,
-                      color: AppColors.debtText,
-                      size: 20,
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx);
+        return AlertDialog(
+          title: Text(l10n?.deleteCustomerTitle ?? 'Delete Customer?'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n != null
+                    ? l10n.deleteCustomerConfirm(customer.name)
+                    : 'Are you sure you want to delete ${customer.name}? All associated transaction records will also be permanently deleted.',
+              ),
+              if (balance != 0) ...[
+                const SizedBox(height: 14),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.debtBg,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.debtText.withValues(alpha: 0.3),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        balance > 0
-                            ? 'This customer has an outstanding balance of $currency${badgeFormat.format(balance)}'
-                            : 'This customer has an advance balance of $currency${badgeFormat.format(balance.abs())}',
-                        style: const TextStyle(
-                          color: AppColors.debtText,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.warning_amber_rounded,
+                        color: AppColors.debtText,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          balance > 0
+                              ? 'This customer has an outstanding balance of $currency${badgeFormat.format(balance)}'
+                              : 'This customer has an advance balance of $currency${badgeFormat.format(balance.abs())}',
+                          style: const TextStyle(
+                            color: AppColors.debtText,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(44),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    side: const BorderSide(color: Color(0xFFCFD8DC)),
-                    foregroundColor: const Color(0xFF546E7A),
-                  ),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.debtText,
-                    minimumSize: const Size.fromHeight(44),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text(
-                    'Delete Customer',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
+              ],
             ],
           ),
-        ],
-      ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(44),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: const BorderSide(color: Color(0xFFCFD8DC)),
+                      foregroundColor: const Color(0xFF546E7A),
+                    ),
+                    child: Text(
+                      l10n?.cancel ?? 'Cancel',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.debtText,
+                      minimumSize: const Size.fromHeight(44),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: Text(
+                      l10n?.delete ?? 'Delete Customer',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
 
     if (confirm == true) {

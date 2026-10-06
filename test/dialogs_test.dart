@@ -10,6 +10,7 @@ import 'package:baki_khata/data/repositories/settings_repository.dart';
 import 'package:baki_khata/data/repositories/transaction_repository.dart';
 import 'package:baki_khata/features/shared/customer_dialog.dart';
 import 'package:baki_khata/features/shared/transaction_dialog.dart';
+import 'package:baki_khata/l10n/generated/app_localizations.dart';
 
 void main() {
   final now = DateTime.now();
@@ -42,6 +43,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: Builder(
                 builder: (context) => Consumer(
@@ -94,6 +97,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: Builder(
                 builder: (context) => Consumer(
@@ -150,6 +155,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: Builder(
                 builder: (context) => Consumer(
@@ -171,7 +178,7 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Add Baki (Credit)'), findsOneWidget);
+      expect(find.text('Give Credit'), findsOneWidget);
 
       // Segmented toggle must NOT be visible when adding fresh with fixed type
       expect(find.byType(SegmentedButton<TransactionType>), findsNothing);
@@ -215,7 +222,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Dialog closed
-      expect(find.text('Add Baki (Credit)'), findsNothing);
+      expect(find.text('Give Credit'), findsNothing);
     });
 
     testWidgets('Editing existing transaction shows Segmented Type toggle and pre-fills data', (tester) async {
@@ -240,6 +247,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: Builder(
                 builder: (context) => Consumer(
@@ -265,7 +274,7 @@ void main() {
 
       // Segmented toggle IS shown when editing
       expect(find.byType(SegmentedButton<TransactionType>), findsOneWidget);
-      expect(find.text('Baki (Credit)'), findsOneWidget);
+      expect(find.text('Credit'), findsOneWidget);
       expect(find.text('Payment'), findsOneWidget);
 
       // Pre-filled amount & description
@@ -301,6 +310,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: Builder(
                 builder: (context) => Consumer(

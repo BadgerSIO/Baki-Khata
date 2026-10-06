@@ -11,6 +11,7 @@ import 'package:baki_khata/data/repositories/settings_repository.dart';
 import 'package:baki_khata/data/repositories/transaction_repository.dart';
 import 'package:baki_khata/data/sync/sync_service.dart';
 import 'package:baki_khata/features/settings/settings_screen.dart';
+import 'package:baki_khata/l10n/generated/app_localizations.dart';
 
 void main() {
   final now = DateTime.now();
@@ -296,12 +297,20 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const SettingsScreen(),
           ),
         ),
       );
 
       await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Sign in to back up and sync your data to the cloud'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
 
       // Generic nudge copy when no customers
       expect(find.text('Sign in to back up and sync your data to the cloud'),
@@ -351,12 +360,20 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const SettingsScreen(),
           ),
         ),
       );
 
       await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.textContaining("1 customer isn't backed up"),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
 
       // Live count copy with amount and customer count
       expect(
@@ -382,6 +399,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const SettingsScreen(),
           ),
         ),
@@ -391,10 +410,15 @@ void main() {
 
       // Sign Out button exists
       final signOutBtn = find.widgetWithText(FilledButton, 'Sign Out');
-      expect(signOutBtn, findsOneWidget);
-
+      await tester.scrollUntilVisible(
+        signOutBtn,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.ensureVisible(signOutBtn);
       await tester.pumpAndSettle();
+      expect(signOutBtn, findsOneWidget);
+
       await tester.tap(signOutBtn);
       await tester.pumpAndSettle();
 

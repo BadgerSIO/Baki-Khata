@@ -32,8 +32,11 @@ Future<AppTransaction?> showAddTransactionDialog(
       preselectedCustomerId: preselectedCustomerId,
     );
 
-Future<AppTransaction?> showAddBakiDialog(BuildContext context, WidgetRef ref) =>
+Future<AppTransaction?> showGiveCreditDialog(BuildContext context, WidgetRef ref) =>
     showTransactionDialog(context, ref, type: TransactionType.baki);
+
+Future<AppTransaction?> showAddBakiDialog(BuildContext context, WidgetRef ref) =>
+    showGiveCreditDialog(context, ref);
 
 Future<AppTransaction?> showRecordPaymentDialog(
         BuildContext context, WidgetRef ref) =>

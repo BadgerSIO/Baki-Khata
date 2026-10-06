@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app.dart';
 import '../../core/current_user_service.dart';
 import '../../core/theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../auth/account_screen.dart';
 
 /// Top right corner action widget for the Home page.
@@ -15,6 +16,7 @@ class HomeUserHeaderAction extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(currentUserProfileProvider);
     final profile = profileAsync.value ?? CurrentUserProfile.guest;
+    final l10n = AppLocalizations.of(context);
 
     if (profile.isGuest) {
       return OutlinedButton.icon(
@@ -27,9 +29,9 @@ class HomeUserHeaderAction extends ConsumerWidget {
           );
         },
         icon: const Icon(Icons.login_rounded, size: 15),
-        label: const Text(
-          'Login / Sign Up',
-          style: TextStyle(
+        label: Text(
+          l10n?.loginSignUp ?? 'Login / Sign Up',
+          style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),
@@ -64,7 +66,7 @@ class HomeUserHeaderAction extends ConsumerWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 95),
               child: Text(
-                'Hi ${profile.displayName}',
+                l10n?.hiGreeting(profile.displayName) ?? 'Hi ${profile.displayName}',
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,

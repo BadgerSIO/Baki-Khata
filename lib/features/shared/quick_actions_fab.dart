@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'quick_action_dialogs.dart';
 
 class QuickActionsFab extends ConsumerStatefulWidget {
@@ -59,13 +60,15 @@ class _QuickActionsFabState extends ConsumerState<QuickActionsFab>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         if (_isOpen) ...[
           _buildActionItem(
-            label: 'Record Payment',
+            label: l10n?.recordPayment ?? 'Record Payment',
             icon: Icons.arrow_downward,
             color: AppColors.paymentText,
             bgColor: AppColors.paymentBg,
@@ -76,7 +79,7 @@ class _QuickActionsFabState extends ConsumerState<QuickActionsFab>
           ),
           const SizedBox(height: 10),
           _buildActionItem(
-            label: 'Add Baki',
+            label: l10n?.giveCredit ?? 'Give Credit',
             icon: Icons.arrow_upward,
             color: AppColors.debtText,
             bgColor: AppColors.debtBg,
@@ -87,7 +90,7 @@ class _QuickActionsFabState extends ConsumerState<QuickActionsFab>
           ),
           const SizedBox(height: 10),
           _buildActionItem(
-            label: 'Add Customer',
+            label: l10n?.addCustomer ?? 'Add Customer',
             icon: Icons.person_add_alt_1,
             color: AppColors.primary,
             bgColor: AppColors.primaryContainer,

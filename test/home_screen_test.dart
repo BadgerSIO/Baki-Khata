@@ -10,6 +10,7 @@ import 'package:baki_khata/data/repositories/customer_repository.dart';
 import 'package:baki_khata/data/repositories/settings_repository.dart';
 import 'package:baki_khata/data/repositories/transaction_repository.dart';
 import 'package:baki_khata/features/dashboard/home_screen.dart';
+import 'package:baki_khata/l10n/generated/app_localizations.dart';
 
 void main() {
   testWidgets('HomeScreen computes and renders reactive dashboard metrics', (tester) async {
@@ -89,6 +90,8 @@ void main() {
         ],
         child: MaterialApp(
           theme: AppTheme.lightTheme,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const HomeScreen(),
         ),
       ),
@@ -97,16 +100,16 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. Verify Stat Cards
-    // Total Outstanding = Rahim's net positive balance of 1000.00
-    expect(find.text('Total Outstanding'), findsOneWidget);
+    // Total Due = Rahim's net positive balance of 1000.00
+    expect(find.text('Total Due'), findsOneWidget);
     expect(find.text('৳ 1,000.00'), findsOneWidget);
 
     // Total Customers = 2
     expect(find.text('Total Customers'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
 
-    // New Baki Today = 1500.00
-    expect(find.text('New Baki Today'), findsOneWidget);
+    // New Credit Today = 1500.00
+    expect(find.text('New Credit Today'), findsOneWidget);
     expect(find.text('৳ 1,500.00'), findsOneWidget);
 
     // Collected Today = 500 + 300 = 800.00, Total Collected All-Time = 800.00
@@ -116,7 +119,7 @@ void main() {
 
     // 4. Verify Quick Actions
     expect(find.text('Add Customer'), findsOneWidget);
-    expect(find.text('Add Baki'), findsOneWidget);
+    expect(find.text('Give Credit'), findsOneWidget);
     expect(find.text('Record Payment'), findsOneWidget);
 
     // 5. Verify Recent Transactions Section (scroll into view if needed)
@@ -124,7 +127,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Recent Transactions'), findsOneWidget);
-    expect(find.text('View All'), findsOneWidget);
+    expect(find.text('View all'), findsOneWidget);
     expect(find.text('Rahim Traders'), findsWidgets);
     expect(find.text('Karim Store'), findsWidgets);
   });
@@ -150,6 +153,8 @@ void main() {
         container: testContainer,
         child: MaterialApp(
           theme: AppTheme.lightTheme,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const HomeScreen(),
         ),
       ),
@@ -160,8 +165,8 @@ void main() {
     // Verify initial tab is 0
     expect(testContainer.read(currentTabProvider), 0);
 
-    // Tap Total Outstanding -> switches to History tab (2)
-    await tester.tap(find.text('Total Outstanding'));
+    // Tap Total Due -> switches to History tab (2)
+    await tester.tap(find.text('Total Due'));
     await tester.pumpAndSettle();
     expect(testContainer.read(currentTabProvider), 2);
 
@@ -170,10 +175,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(testContainer.read(currentTabProvider), 1);
 
-    // Tap View All -> switches to History tab (2)
+    // Tap View all -> switches to History tab (2)
     await tester.drag(find.byType(ListView), const Offset(0, -300));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('View All'));
+    await tester.tap(find.text('View all'));
     await tester.pumpAndSettle();
     expect(testContainer.read(currentTabProvider), 2);
   });

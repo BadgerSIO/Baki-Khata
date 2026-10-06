@@ -7,6 +7,7 @@ import '../../data/models/customer.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../shared/quick_action_dialogs.dart';
 import 'customer_details_screen.dart';
 
@@ -198,6 +199,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   }
 
   Widget _buildSearchAndSortBar(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       color: theme.scaffoldBackgroundColor,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
@@ -212,7 +214,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                 });
               },
               decoration: InputDecoration(
-                hintText: 'Search by name, phone, or address...',
+                hintText: l10n?.searchCustomersHint ?? 'Search by name, phone, or address...',
                 hintStyle: const TextStyle(
                   color: Color(0xFF8C9E97),
                   fontSize: 14,
@@ -262,6 +264,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   }
 
   Widget _buildSortButton(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       height: 48,
       width: 48,
@@ -275,7 +278,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
           color: Color(0xFF60706B),
           size: 22,
         ),
-        tooltip: 'Sort customers',
+        tooltip: l10n?.sortBy ?? 'Sort customers',
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -284,36 +287,36 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
           setState(() => _currentSort = sort);
         },
         itemBuilder: (context) => [
-          const PopupMenuItem(
+          PopupMenuItem(
             value: CustomerSort.nameAsc,
             child: Row(
               children: [
-                Icon(Icons.sort_by_alpha_rounded,
+                const Icon(Icons.sort_by_alpha_rounded,
                     size: 20, color: Color(0xFF60706B)),
-                SizedBox(width: 12),
-                Text('Name (A–Z)'),
+                const SizedBox(width: 12),
+                Text(l10n?.sortName ?? 'Name (A–Z)'),
               ],
             ),
           ),
-          const PopupMenuItem(
+          PopupMenuItem(
             value: CustomerSort.highestDue,
             child: Row(
               children: [
-                Icon(Icons.trending_up_rounded,
+                const Icon(Icons.trending_up_rounded,
                     size: 20, color: AppColors.debtText),
-                SizedBox(width: 12),
-                Text('Highest Due'),
+                const SizedBox(width: 12),
+                Text(l10n?.sortHighestDue ?? 'Highest Due'),
               ],
             ),
           ),
-          const PopupMenuItem(
+          PopupMenuItem(
             value: CustomerSort.recentlyAdded,
             child: Row(
               children: [
-                Icon(Icons.access_time_rounded,
+                const Icon(Icons.access_time_rounded,
                     size: 20, color: Color(0xFF60706B)),
-                SizedBox(width: 12),
-                Text('Recently Added'),
+                const SizedBox(width: 12),
+                Text(l10n?.sortMostRecent ?? 'Recently Added'),
               ],
             ),
           ),
@@ -328,6 +331,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     required int advanceCount,
     required int settledCount,
   }) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
@@ -336,25 +340,25 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         child: Row(
           children: [
             _buildChip(
-              label: 'All ($totalCount)',
+              label: '${l10n?.filterAll ?? "All"} ($totalCount)',
               filter: CustomerFilter.all,
               activeColor: AppColors.primary,
             ),
             const SizedBox(width: 8),
             _buildChip(
-              label: 'Due ($dueCount)',
+              label: '${l10n?.filterDue ?? "Due"} ($dueCount)',
               filter: CustomerFilter.due,
               activeColor: AppColors.debtText,
             ),
             const SizedBox(width: 8),
             _buildChip(
-              label: 'Advance ($advanceCount)',
+              label: '${l10n?.filterAdvance ?? "Advance"} ($advanceCount)',
               filter: CustomerFilter.advance,
               activeColor: AppColors.advanceText,
             ),
             const SizedBox(width: 8),
             _buildChip(
-              label: 'Settled ($settledCount)',
+              label: '${l10n?.filterSettled ?? "Settled"} ($settledCount)',
               filter: CustomerFilter.settled,
               activeColor: AppColors.settledText,
             ),
@@ -405,6 +409,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     required String currency,
   }) {
     final moneyFormat = NumberFormat('#,##0.00');
+    final l10n = AppLocalizations.of(context);
 
     final IconData icon;
     final Color bgColor;
@@ -434,7 +439,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         icon = Icons.info_outline_rounded;
         bgColor = const Color(0xFFEFF3F1);
         textColor = const Color(0xFF42524D);
-        text = '$count customer${count == 1 ? '' : 's'} • Total Due: $currency${moneyFormat.format(totalDue)}';
+        text = '$count customer${count == 1 ? '' : 's'} • ${l10n?.totalReceivable ?? "Total Due:"} $currency${moneyFormat.format(totalDue)}';
         break;
     }
 
@@ -784,6 +789,7 @@ class _BalanceBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final Color textColor;
     final Color bgColor;
     final String text;
@@ -795,15 +801,15 @@ class _BalanceBadge extends StatelessWidget {
     if (balance > 0) {
       textColor = AppColors.debtText;
       bgColor = AppColors.debtBg;
-      text = 'Due $currency${formatter.format(balance)}';
+      text = '${l10n?.netDue ?? "Due"} $currency${formatter.format(balance)}';
     } else if (balance < 0) {
       textColor = AppColors.advanceText;
       bgColor = AppColors.advanceBg;
-      text = 'Advance $currency${formatter.format(balance.abs())}';
+      text = '${l10n?.advance ?? "Advance"} $currency${formatter.format(balance.abs())}';
     } else {
       textColor = AppColors.settledText;
       bgColor = AppColors.settledBg;
-      text = 'Settled';
+      text = l10n?.settled ?? 'Settled';
     }
 
     return Container(

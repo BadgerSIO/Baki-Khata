@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/current_user_service.dart';
+import 'core/locale_provider.dart';
 import 'core/supabase_client.dart';
 import 'core/theme.dart';
+import 'l10n/generated/app_localizations.dart';
 import 'data/local/local_database.dart';
 import 'data/repositories/customer_repository.dart';
 import 'data/repositories/settings_repository.dart';
@@ -63,11 +65,15 @@ class BakiKhataApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hasSettingsAsync = ref.watch(hasLocalSettingsProvider);
+    final locale = ref.watch(localeNotifierProvider);
 
     return MaterialApp(
-      title: 'Baki Khata',
+      onGenerateTitle: (context) => AppLocalizations.of(context)?.appName ?? 'Baki Khata',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       onGenerateRoute: (settings) {
         // Gracefully handle deep links / OAuth callback query strings e.g. "/?code=..."
         return MaterialPageRoute(
@@ -184,9 +190,9 @@ class _InitialSyncGateState extends ConsumerState<InitialSyncGate> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Syncing your ledger...',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)?.syncingLedger ?? 'Syncing your ledger...',
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF60706B),
@@ -219,15 +225,15 @@ class _MainNavigationScaffoldState
     SettingsScreen(),
   ];
 
-  final List<String> _titles = const [
-    'Dashboard',
-    'Customers',
-    'History',
-    'Settings',
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final titles = [
+      l10n?.dashboardTitle ?? 'Dashboard',
+      l10n?.customersTitle ?? 'Customers',
+      l10n?.historyTitle ?? 'History',
+      l10n?.settingsTitle ?? 'Settings',
+    ];
     final currentIndex = ref.watch(currentTabProvider);
     final showSettingsBadge = ref.watch(guestNeedsBackupProvider);
     final settings = ref.watch(settingsStreamProvider).value;
@@ -267,7 +273,7 @@ class _MainNavigationScaffoldState
                   ),
                 ],
               )
-            : Text(_titles[currentIndex]),
+            : Text(titles[currentIndex]),
         centerTitle: false,
         actions: [
           if (currentIndex == 0) ...[
@@ -305,20 +311,20 @@ class _MainNavigationScaffoldState
           fontSize: 12,
         ),
         items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard_rounded),
-            label: 'Home',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.dashboard_outlined),
+            activeIcon: const Icon(Icons.dashboard_rounded),
+            label: l10n?.navHome ?? 'Home',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline_rounded),
-            activeIcon: Icon(Icons.people_rounded),
-            label: 'Customers',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.people_outline_rounded),
+            activeIcon: const Icon(Icons.people_rounded),
+            label: l10n?.navCustomers ?? 'Customers',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long_outlined),
-            activeIcon: Icon(Icons.receipt_long_rounded),
-            label: 'History',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.receipt_long_outlined),
+            activeIcon: const Icon(Icons.receipt_long_rounded),
+            label: l10n?.navHistory ?? 'History',
           ),
           BottomNavigationBarItem(
             icon: Badge(
@@ -331,7 +337,7 @@ class _MainNavigationScaffoldState
               backgroundColor: const Color(0xFFB78103),
               child: const Icon(Icons.settings_rounded),
             ),
-            label: 'Settings',
+            label: l10n?.navSettings ?? 'Settings',
           ),
         ],
       ),

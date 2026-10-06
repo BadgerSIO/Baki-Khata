@@ -42,6 +42,11 @@ A clean, modern, and production-ready **Flutter application** designed for small
   - PWA manifest, custom app icons, and service worker for offline caching and home-screen installability.
   - Production-ready `vercel.json` for deployment on Vercel.
 
+- **🌍 Multilingual & Localization (i18n)**:
+  - Native support for **English** and **Bangla (বাংলা)** across all screens, forms, dialogs, and navigation elements.
+  - Seamless in-app language switcher in Settings with instant state persistence via Riverpod.
+  - Fully type-safe localizations powered by Flutter's official `gen-l10n` toolchain and ARB resource files.
+
 ---
 
 ## 🏗️ Architecture & Project Structure
@@ -54,8 +59,10 @@ lib/
 ├── main.dart                   # App entrypoint and service initialization
 ├── core/
 │   ├── current_user_service.dart # Auth session state
+│   ├── locale_provider.dart      # App locale state & persistence
 │   ├── supabase_client.dart      # Supabase client singleton & configuration
 │   └── theme.dart                # Material 3 typography and custom emerald palette
+├── l10n/                         # ARB localization files (English & Bangla)
 ├── data/
 │   ├── local/
 │   │   └── local_database.dart   # SQLite schema and in-memory Web fallback

@@ -8,6 +8,7 @@ import '../../data/models/transaction.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../shared/quick_action_dialogs.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -90,6 +91,7 @@ class HomeScreen extends ConsumerWidget {
     final recentTransactions = sortedRecent.take(5).toList();
 
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: RefreshIndicator(
@@ -126,7 +128,7 @@ class HomeScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Recent Transactions',
+                  l10n?.recentTransactions ?? 'Recent Transactions',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -135,7 +137,7 @@ class HomeScreen extends ConsumerWidget {
                   onPressed: () {
                     ref.read(currentTabProvider.notifier).state = 2; // History Tab
                   },
-                  child: const Text('View All'),
+                  child: Text(l10n?.viewAll ?? 'View All'),
                 ),
               ],
             ),
@@ -173,6 +175,8 @@ class HomeScreen extends ConsumerWidget {
     required String collectedToday,
     required String totalCollectedAllTime,
   }) {
+    final l10n = AppLocalizations.of(context);
+
     return Column(
       children: [
         IntrinsicHeight(
@@ -181,7 +185,7 @@ class HomeScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: _StatCard(
-                  title: 'Total Outstanding',
+                  title: l10n?.totalDue ?? 'Total Due',
                   value: totalOutstanding,
                   icon: Icons.account_balance_wallet_outlined,
                   iconColor: AppColors.debtText,
@@ -195,7 +199,7 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _StatCard(
-                  title: 'Total Customers',
+                  title: l10n?.totalCustomers ?? 'Total Customers',
                   value: totalCustomers,
                   icon: Icons.people_outline,
                   iconColor: AppColors.primary,
@@ -215,7 +219,7 @@ class HomeScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: _StatCard(
-                  title: 'New Baki Today',
+                  title: l10n?.newCreditToday ?? 'New Credit Today',
                   value: newBakiToday,
                   icon: Icons.arrow_upward_rounded,
                   iconColor: AppColors.debtText,
@@ -226,7 +230,7 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _StatCard(
-                  title: 'Collected Today',
+                  title: l10n?.collectedToday ?? 'Collected Today',
                   value: collectedToday,
                   icon: Icons.arrow_downward_rounded,
                   iconColor: AppColors.paymentText,
@@ -239,7 +243,7 @@ class HomeScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         _StatCard(
-          title: 'Total Collected All-Time',
+          title: l10n?.totalCollectedAllTime ?? 'Total Collected All-Time',
           value: totalCollectedAllTime,
           icon: Icons.payments_outlined,
           iconColor: AppColors.paymentText,
@@ -358,11 +362,13 @@ class _QuickActionsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Row(
       children: [
         Expanded(
           child: _QuickActionButton(
-            label: 'Add Customer',
+            label: l10n?.addCustomer ?? 'Add Customer',
             icon: Icons.person_add_alt_1_outlined,
             color: AppColors.primary,
             bgColor: AppColors.primaryContainer.withValues(alpha: 0.5),
@@ -372,7 +378,7 @@ class _QuickActionsRow extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _QuickActionButton(
-            label: 'Add Baki',
+            label: l10n?.giveCredit ?? 'Give Credit',
             icon: Icons.arrow_upward_rounded,
             color: AppColors.debtText,
             bgColor: AppColors.debtBg,
@@ -382,7 +388,7 @@ class _QuickActionsRow extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _QuickActionButton(
-            label: 'Record Payment',
+            label: l10n?.recordPayment ?? 'Record Payment',
             icon: Icons.arrow_downward_rounded,
             color: AppColors.paymentText,
             bgColor: AppColors.paymentBg,
@@ -584,18 +590,19 @@ class _EmptyRecentTransactions extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'No Transactions Yet',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)?.noTransactionsYet ?? 'No Transactions Yet',
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Record customer credit (baki) or received payments to see recent activity here.',
+            Text(
+              AppLocalizations.of(context)?.noTransactionsDescription ??
+                  'Record customer credit or received payments to see recent activity here.',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 color: Color(0xFF78909C),
               ),

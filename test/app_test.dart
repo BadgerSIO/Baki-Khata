@@ -11,6 +11,7 @@ import 'package:baki_khata/data/repositories/customer_repository.dart';
 import 'package:baki_khata/data/repositories/settings_repository.dart';
 import 'package:baki_khata/data/repositories/transaction_repository.dart';
 import 'package:baki_khata/data/sync/sync_service.dart';
+import 'package:baki_khata/l10n/generated/app_localizations.dart';
 
 void main() {
   final now = DateTime.now();
@@ -112,6 +113,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const MainNavigationScaffold(),
           ),
         ),
@@ -132,7 +135,7 @@ void main() {
       // Default index is 0 (Home shows shop name and storefront icon)
       expect(find.text('Test Shop'), findsOneWidget);
       expect(find.byIcon(Icons.storefront_outlined), findsOneWidget);
-      expect(find.text('Total Outstanding'), findsOneWidget);
+      expect(find.text('Total Due'), findsOneWidget);
 
       // Verify IndexedStack exists with 4 children
       final indexedStackFinder = find.byType(IndexedStack);
@@ -141,23 +144,38 @@ void main() {
       expect(stack.children.length, 4);
 
       // Switch to Customers tab (index 1)
-      await tester.tap(find.text('Customers'));
+      await tester.tap(find.descendant(
+        of: find.byType(BottomNavigationBar),
+        matching: find.text('Customers'),
+      ));
       await tester.pumpAndSettle();
 
       expect(find.text('No customers yet'), findsOneWidget);
 
       // Switch to History tab (index 2)
-      await tester.tap(find.text('History'));
+      await tester.tap(find.descendant(
+        of: find.byType(BottomNavigationBar),
+        matching: find.text('History'),
+      ));
       await tester.pumpAndSettle();
 
-      expect(find.text('No Transactions Yet'), findsOneWidget);
+      expect(find.text('No transactions yet'), findsOneWidget);
 
       // Switch to Settings tab (index 3)
-      await tester.tap(find.text('Settings'));
+      await tester.tap(find.descendant(
+        of: find.byType(BottomNavigationBar),
+        matching: find.text('Settings'),
+      ));
       await tester.pumpAndSettle();
 
       expect(find.text('Shop Information'), findsOneWidget);
-      expect(find.text('Guest Mode'), findsOneWidget);
+      expect(find.text('App Language'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Account & Sync'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Account & Sync'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Sign In / Create Account'),
         200,

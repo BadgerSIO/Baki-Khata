@@ -8,6 +8,7 @@ import '../../data/models/transaction.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'customer_dialog.dart';
 
 /// Shows the Add/Edit Transaction dialog.
@@ -174,6 +175,7 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
     final isBaki = _currentType == TransactionType.baki;
     final accentColor = isBaki ? AppColors.debtText : AppColors.paymentText;
     final accentBg = isBaki ? AppColors.debtBg : AppColors.paymentBg;
+    final l10n = AppLocalizations.of(context);
 
     // Show toggle only when editing an existing transaction
     final showTypeToggle = isEditing;
@@ -206,8 +208,8 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
           const SizedBox(width: 12),
           Text(
             isEditing
-                ? 'Edit Transaction'
-                : (isBaki ? 'Add Baki (Credit)' : 'Record Payment'),
+                ? (l10n?.editTransaction ?? 'Edit Transaction')
+                : (isBaki ? (l10n?.giveCreditTitle ?? 'Give Credit') : (l10n?.recordPaymentTitle ?? 'Record Payment')),
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: accentColor,
@@ -226,12 +228,12 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
               const SizedBox(height: 8),
 
               // 1. Customer Picker / Selected Customer Display
-              _buildCustomerSection(customers),
+              _buildCustomerSection(customers, l10n),
 
               // 2. Segmented Type Toggle (only when editing existing transaction)
               if (showTypeToggle) ...[
                 const SizedBox(height: 16),
-                _buildSegmentedTypeToggle(),
+                _buildSegmentedTypeToggle(l10n),
               ],
 
               const SizedBox(height: 16),
@@ -244,7 +246,7 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                     const TextInputType.numberWithOptions(decimal: true),
                 onChanged: _validateAmount,
                 decoration: InputDecoration(
-                  labelText: 'Amount *',
+                  labelText: '${l10n?.amount ?? "Amount"} *',
                   hintText: '0.00',
                   prefixText: '$currency ',
                   prefixStyle: TextStyle(
@@ -267,10 +269,10 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                 controller: _descriptionController,
                 maxLines: 1,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Description (optional)',
-                  hintText: 'e.g. Rice sacks, cash partial, etc.',
-                  prefixIcon: Icon(Icons.notes_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n?.notesDescription ?? 'Description (optional)',
+                  hintText: l10n?.notesHint ?? 'e.g. Rice sacks, cash partial, etc.',
+                  prefixIcon: const Icon(Icons.notes_outlined),
                 ),
               ),
 
@@ -300,9 +302,9 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                   }
                 },
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Transaction Date',
-                    prefixIcon: Icon(Icons.calendar_today_outlined),
+                  decoration: InputDecoration(
+                    labelText: l10n?.date ?? 'Transaction Date',
+                    prefixIcon: const Icon(Icons.calendar_today_outlined),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -342,9 +344,9 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                   side: const BorderSide(color: Color(0xFFCFD8DC)),
                   foregroundColor: const Color(0xFF546E7A),
                 ),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                child: Text(
+                  l10n?.cancel ?? 'Cancel',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -368,9 +370,9 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'Save',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                    : Text(
+                        l10n?.save ?? 'Save',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -382,18 +384,18 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
     );
   }
 
-  Widget _buildSegmentedTypeToggle() {
+  Widget _buildSegmentedTypeToggle(AppLocalizations? l10n) {
     return SegmentedButton<TransactionType>(
-      segments: const [
+      segments: [
         ButtonSegment<TransactionType>(
           value: TransactionType.baki,
-          label: Text('Baki (Credit)'),
-          icon: Icon(Icons.arrow_upward_rounded),
+          label: Text(l10n?.credit ?? 'Credit'),
+          icon: const Icon(Icons.arrow_upward_rounded),
         ),
         ButtonSegment<TransactionType>(
           value: TransactionType.payment,
-          label: Text('Payment'),
-          icon: Icon(Icons.arrow_downward_rounded),
+          label: Text(l10n?.payment ?? 'Payment'),
+          icon: const Icon(Icons.arrow_downward_rounded),
         ),
       ],
       selected: {_currentType},
@@ -405,7 +407,7 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
     );
   }
 
-  Widget _buildCustomerSection(List<Customer> customers) {
+  Widget _buildCustomerSection(List<Customer> customers, AppLocalizations? l10n) {
     if (_selectedCustomerId != null) {
       final customer = _selectedCustomer ??
           customers.where((c) => c.id == _selectedCustomerId).firstOrNull;
@@ -501,8 +503,8 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
             });
           },
           decoration: InputDecoration(
-            labelText: 'Select Customer *',
-            hintText: 'Search name, phone, address...',
+            labelText: '${l10n?.selectCustomer ?? "Select Customer"} *',
+            hintText: l10n?.searchCustomersHint ?? 'Search name, phone, address...',
             prefixIcon: const Icon(Icons.person_search_outlined),
             suffixIcon: _customerSearchQuery.isNotEmpty
                 ? IconButton(
@@ -528,8 +530,8 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
               children: [
                 Text(
                   _customerSearchQuery.isEmpty
-                      ? 'No customers created yet'
-                      : 'No customer found for "$_customerSearchQuery"',
+                      ? (l10n?.noCustomersFound ?? 'No customers created yet')
+                      : (l10n != null ? '${l10n.noCustomersFound}: "$_customerSearchQuery"' : 'No customer found for "$_customerSearchQuery"'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 13,
@@ -556,7 +558,7 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                     }
                   },
                   icon: const Icon(Icons.person_add_rounded, size: 18),
-                  label: const Text('Add New Customer'),
+                  label: Text(l10n?.addNewCustomer ?? 'Add New Customer'),
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(0, 40),
                     padding: const EdgeInsets.symmetric(

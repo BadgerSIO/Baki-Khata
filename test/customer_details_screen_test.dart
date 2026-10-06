@@ -9,6 +9,7 @@ import 'package:baki_khata/data/repositories/customer_repository.dart';
 import 'package:baki_khata/data/repositories/settings_repository.dart';
 import 'package:baki_khata/data/repositories/transaction_repository.dart';
 import 'package:baki_khata/features/customers/customer_details_screen.dart';
+import 'package:baki_khata/l10n/generated/app_localizations.dart';
 
 void main() {
   final now = DateTime.now();
@@ -67,6 +68,8 @@ void main() {
         ],
         child: MaterialApp(
           theme: AppTheme.lightTheme,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const CustomerDetailsScreen(customerId: 'cust-1'),
         ),
       ),
@@ -85,7 +88,7 @@ void main() {
     expect(find.text('Due ৳1,000'), findsOneWidget);
 
     // 3. Verify Two Action Buttons
-    expect(find.text('Add Baki'), findsOneWidget);
+    expect(find.text('Give Credit'), findsOneWidget);
     expect(find.text('Record Payment'), findsOneWidget);
 
     // 4. Verify Transaction History
@@ -110,6 +113,8 @@ void main() {
         ],
         child: MaterialApp(
           theme: AppTheme.lightTheme,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const CustomerDetailsScreen(customerId: 'cust-1'),
         ),
       ),
@@ -153,6 +158,8 @@ void main() {
         ],
         child: MaterialApp(
           theme: AppTheme.lightTheme,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const CustomerDetailsScreen(customerId: 'cust-1'),
         ),
       ),
@@ -185,6 +192,8 @@ void main() {
         ],
         child: MaterialApp(
           theme: AppTheme.lightTheme,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const CustomerDetailsScreen(customerId: 'cust-1'),
         ),
       ),

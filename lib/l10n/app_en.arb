@@ -1,0 +1,213 @@
+{
+  "@@locale": "en",
+  "appName": "Baki Khata",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "close": "Close",
+  "retry": "Retry",
+  "confirm": "Confirm",
+  "search": "Search",
+  "loading": "Loading...",
+  "error": "Error",
+  "syncingLedger": "Syncing your ledger...",
+
+  "navHome": "Home",
+  "navCustomers": "Customers",
+  "navHistory": "History",
+  "navSettings": "Settings",
+  "dashboardTitle": "Dashboard",
+  "customersTitle": "Customers",
+  "historyTitle": "History",
+  "settingsTitle": "Settings",
+
+  "totalDue": "Total Due",
+  "totalCustomers": "Total Customers",
+  "newCreditToday": "New Credit Today",
+  "collectedToday": "Collected Today",
+  "totalCollectedAllTime": "Total Collected All-Time",
+  "recentTransactions": "Recent Transactions",
+  "viewAll": "View all",
+  "giveCredit": "Give Credit",
+  "recordPayment": "Record Payment",
+  "addCustomer": "Add Customer",
+  "noTransactionsYet": "No transactions yet",
+  "noTransactionsDescription": "Record customer credit or received payments to see recent activity here.",
+
+  "searchCustomersHint": "Search customers...",
+  "totalReceivable": "Total Receivable:",
+  "sortBy": "Sort by",
+  "sortName": "Name",
+  "sortHighestDue": "Highest Due",
+  "sortMostRecent": "Most Recent",
+  "filterAll": "All",
+  "filterDue": "Due",
+  "filterAdvance": "Advance",
+  "filterSettled": "Settled",
+  "noCustomersFound": "No customers found",
+  "noCustomersMatchFilter": "No customers match the current filter or search.",
+  "customerName": "Customer Name",
+  "phoneNumber": "Phone Number",
+  "address": "Address",
+  "addNewCustomer": "Add New Customer",
+  "editCustomer": "Edit Customer",
+  "editTransaction": "Edit Transaction",
+
+  "customerDetailsTitle": "Customer Details",
+  "call": "Call",
+  "sms": "SMS",
+  "whatsapp": "WhatsApp",
+  "currentBalance": "Current Balance",
+  "netDue": "Due",
+  "advance": "Advance",
+  "settled": "Settled",
+  "credit": "Credit",
+  "payment": "Payment",
+  "noCustomerTransactions": "No transactions yet",
+  "noCustomerTransactionsHint": "Use Give Credit or Record Payment above to add the first transaction for this customer.",
+  "deleteTransactionTitle": "Delete Transaction?",
+  "deleteTransactionConfirm": "Are you sure you want to delete this {type} of {amount}?",
+  "@deleteTransactionConfirm": {
+    "placeholders": {
+      "type": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "deleteCustomer": "Delete Customer",
+  "deleteCustomerTitle": "Delete Customer?",
+  "deleteCustomerConfirm": "Are you sure you want to delete {name} and all their transaction history? This action cannot be undone.",
+  "@deleteCustomerConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "historyFilterAll": "All ({count})",
+  "@historyFilterAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "historyFilterCredit": "Credit ({count})",
+  "@historyFilterCredit": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "historyFilterPayment": "Payment ({count})",
+  "@historyFilterPayment": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "searchHistoryHint": "Search by customer, note or amount...",
+  "today": "TODAY",
+  "yesterday": "YESTERDAY",
+  "noHistoryFound": "No transactions found",
+  "noHistoryHint": "When you give credit or record payments, they will appear here in reverse chronological order.",
+  "deleteHistoryConfirm": "Are you sure you want to delete this {type} of {amount} for {customer}?",
+  "@deleteHistoryConfirm": {
+    "placeholders": {
+      "type": { "type": "String" },
+      "amount": { "type": "String" },
+      "customer": { "type": "String" }
+    }
+  },
+
+  "giveCreditTitle": "Give Credit",
+  "recordPaymentTitle": "Record Payment",
+  "selectCustomer": "Select Customer",
+  "selectCustomerPrompt": "Choose a customer",
+  "amount": "Amount",
+  "enterAmount": "Enter amount",
+  "date": "Date",
+  "notesDescription": "Notes / Description (Optional)",
+  "notesHint": "e.g. Groceries, Invoice #123",
+  "transactionSaved": "Transaction saved successfully",
+
+  "shopInfo": "Shop Information",
+  "shopName": "Shop Name",
+  "currencySymbol": "Currency Symbol",
+  "shopInfoSaved": "Shop information saved",
+  "appLanguage": "App Language",
+  "selectLanguage": "Select Language",
+  "english": "English",
+  "bangla": "বাংলা",
+  "accountAndSync": "Account & Sync",
+  "guestMode": "Guest Mode (Local Only)",
+  "guestWarning": "Sign in to back up and sync your data to the cloud",
+  "signInBackup": "Sign In / Back Up",
+  "signInOrCreateAccount": "Sign In / Create Account",
+  "signedInAs": "Signed in as",
+  "syncNow": "Sync Now",
+  "syncing": "Syncing...",
+  "synced": "Synced",
+  "syncError": "Sync Error",
+  "offline": "Offline",
+  "syncHelpText": "Your records are automatically saved on this device and synced to your cloud account when online.",
+  "lastSynced": "Last synced: {time}",
+  "@lastSynced": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "neverSynced": "Never synced",
+  "justNow": "Just now",
+  "customizeShopDetails": "Customize your shop name and currency symbol.",
+  "signOut": "Sign Out",
+  "signOutTitle": "Sign Out?",
+  "signOutConfirm": "Are you sure you want to sign out of Baki Khata? Any pending offline data remains safely stored on this device.",
+  "deleteAccount": "Delete Account",
+  "deleteAccountConfirm": "Are you sure you want to permanently delete your account and all associated data? This action cannot be undone.",
+  "appVersion": "Version 1.0.0",
+
+  "onboardingWelcome": "Welcome to Baki Khata",
+  "onboardingTagline": "Your simple, smart digital credit ledger",
+  "setupYourShop": "Set Up Your Shop",
+  "getStarted": "Get Started",
+  "signIn": "Sign In",
+  "continueAsGuest": "Continue as Guest",
+  "phoneSignIn": "Phone Sign In",
+  "googleSignIn": "Continue with Google",
+  "otpVerification": "OTP Verification",
+  "sendOtp": "Send OTP",
+  "verifyOtp": "Verify & Continue",
+  "resendOtp": "Resend Code",
+  "invalidPhone": "Please enter a valid phone number",
+  "invalidOtp": "Please enter a valid 6-digit code",
+
+  "nameRequired": "Name is required",
+  "phoneOptional": "Phone Number (optional)",
+  "addressOptional": "Address (optional)",
+  "customerNamePlaceholder": "e.g. Rahim Traders, Kashem",
+  "phonePlaceholder": "e.g. 01711-000000",
+  "addressPlaceholder": "e.g. Shop 4, New Market, Dhaka",
+  "setupShopTitle": "Let's set up your shop",
+  "pleaseEnterShopName": "Please enter your shop name",
+  "continueButton": "Continue",
+  "orDivider": "OR",
+  "signUp": "Sign Up",
+  "createAccount": "Create Account",
+  "loginSignUp": "Login / Sign Up",
+  "hiGreeting": "Hi {name}",
+  "@hiGreeting": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "email": "Email",
+  "password": "Password",
+  "forgotPassword": "Forgot password?",
+  "enterEmailPrompt": "Please enter your email",
+  "enterValidEmailPrompt": "Please enter a valid email address",
+  "enterPasswordPrompt": "Please enter a password",
+  "passwordMinChars": "Password must be at least 8 characters",
+  "passwordHelper": "Minimum 8 characters",
+  "settingUpAccount": "Setting up your account…",
+  "backingUpOffline": "Backing up your offline ledger to the cloud",
+  "termsNotice": "By creating an account, you agree to our Terms of Service and Privacy Policy.",
+  "trackCreditTagline": "Track customer credit, the simple way",
+  "editTransaction": "Edit Transaction",
+  "deleteTransaction": "Delete Transaction"
+}

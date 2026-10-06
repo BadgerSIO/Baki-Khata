@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
 import '../../data/models/customer.dart';
 import '../../data/repositories/customer_repository.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 /// Shows the Add/Edit Customer dialog.
 ///
@@ -124,6 +125,7 @@ class _CustomerDialogState extends ConsumerState<CustomerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final canSave = !_isNameEmpty && !_isSaving;
 
     return AlertDialog(
@@ -143,7 +145,9 @@ class _CustomerDialogState extends ConsumerState<CustomerDialog> {
           ),
           const SizedBox(width: 12),
           Text(
-            isEditing ? 'Edit Customer' : 'Add New Customer',
+            isEditing
+                ? (l10n?.editCustomer ?? 'Edit Customer')
+                : (l10n?.addNewCustomer ?? 'Add New Customer'),
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ],
@@ -160,14 +164,14 @@ class _CustomerDialogState extends ConsumerState<CustomerDialog> {
                 controller: _nameController,
                 autofocus: true,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Customer Name *',
-                  hintText: 'e.g. Rahim Traders, Kashem',
-                  prefixIcon: Icon(Icons.person_outline),
+                decoration: InputDecoration(
+                  labelText: '${l10n?.customerName ?? "Customer Name"} *',
+                  hintText: l10n?.customerNamePlaceholder ?? 'e.g. Rahim Traders, Kashem',
+                  prefixIcon: const Icon(Icons.person_outline),
                 ),
                 validator: (val) {
                   if (val == null || val.trim().isEmpty) {
-                    return 'Name is required';
+                    return l10n?.nameRequired ?? 'Name is required';
                   }
                   return null;
                 },
@@ -176,20 +180,20 @@ class _CustomerDialogState extends ConsumerState<CustomerDialog> {
               TextFormField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number (optional)',
-                  hintText: 'e.g. 01711-000000',
-                  prefixIcon: Icon(Icons.phone_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n?.phoneOptional ?? 'Phone Number (optional)',
+                  hintText: l10n?.phonePlaceholder ?? 'e.g. 01711-000000',
+                  prefixIcon: const Icon(Icons.phone_outlined),
                 ),
               ),
               const SizedBox(height: 14),
               TextFormField(
                 controller: _addressController,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Address (optional)',
-                  hintText: 'e.g. Shop 4, New Market, Dhaka',
-                  prefixIcon: Icon(Icons.location_on_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n?.addressOptional ?? 'Address (optional)',
+                  hintText: l10n?.addressPlaceholder ?? 'e.g. Shop 4, New Market, Dhaka',
+                  prefixIcon: const Icon(Icons.location_on_outlined),
                 ),
               ),
             ],
@@ -210,9 +214,9 @@ class _CustomerDialogState extends ConsumerState<CustomerDialog> {
                   side: const BorderSide(color: Color(0xFFCFD8DC)),
                   foregroundColor: const Color(0xFF546E7A),
                 ),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                child: Text(
+                  l10n?.cancel ?? 'Cancel',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -235,9 +239,9 @@ class _CustomerDialogState extends ConsumerState<CustomerDialog> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'Save',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                    : Text(
+                        l10n?.save ?? 'Save',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
               ),
             ),

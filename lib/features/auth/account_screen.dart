@@ -9,6 +9,7 @@ import '../../core/supabase_client.dart';
 import '../../core/theme.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/sync/sync_service.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'merge_guest_data_dialog.dart';
 import 'otp_verification_screen.dart';
 
@@ -274,6 +275,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     if (_isMigrating) {
       return Scaffold(
@@ -302,16 +304,16 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Setting up your account…',
+                l10n?.settingUpAccount ?? 'Setting up your account…',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF1E2925),
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Backing up your offline ledger to the cloud',
-                style: TextStyle(
+              Text(
+                l10n?.backingUpOffline ?? 'Backing up your offline ledger to the cloud',
+                style: const TextStyle(
                   fontSize: 13,
                   color: Color(0xFF60706B),
                 ),
@@ -328,13 +330,13 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF7FAF8),
         appBar: AppBar(
-          title: const Text('Account'),
+          title: Text(l10n?.accountAndSync ?? 'Account'),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Sign In'),
-              Tab(text: 'Create Account'),
+              Tab(text: l10n?.signIn ?? 'Sign In'),
+              Tab(text: l10n?.createAccount ?? 'Create Account'),
             ],
           ),
         ),
@@ -360,7 +362,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Baki Khata',
+                      l10n?.appName ?? 'Baki Khata',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w800,
@@ -369,7 +371,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Track customer credit, the simple way',
+                      l10n?.trackCreditTagline ?? 'Track customer credit, the simple way',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: const Color(0xFF60706B),
@@ -380,8 +382,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       height: 400,
                       child: TabBarView(
                         children: [
-                          _buildSignInTab(),
-                          _buildCreateAccountTab(),
+                          _buildSignInTab(l10n),
+                          _buildCreateAccountTab(l10n),
                         ],
                       ),
                     ),
@@ -395,7 +397,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     );
   }
 
-  Widget _buildSignInTab() {
+  Widget _buildSignInTab(AppLocalizations? l10n) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -403,9 +405,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
           TextField(
             controller: _signInEmailController,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              prefixIcon: Icon(Icons.email_outlined),
+            decoration: InputDecoration(
+              labelText: l10n?.email ?? 'Email',
+              prefixIcon: const Icon(Icons.email_outlined),
             ),
           ),
           const SizedBox(height: 16),
@@ -413,7 +415,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             controller: _signInPasswordController,
             obscureText: _obscureSignInPassword,
             decoration: InputDecoration(
-              labelText: 'Password',
+              labelText: l10n?.password ?? 'Password',
               prefixIcon: const Icon(Icons.lock_outline_rounded),
               suffixIcon: IconButton(
                 icon: Icon(
@@ -433,9 +435,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: _isSigningIn ? null : _forgotPassword,
-              child: const Text(
-                'Forgot password?',
-                style: TextStyle(fontSize: 13),
+              child: Text(
+                l10n?.forgotPassword ?? 'Forgot password?',
+                style: const TextStyle(fontSize: 13),
               ),
             ),
           ),
@@ -457,34 +459,34 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       color: Colors.white,
                     ),
                   )
-                : const Text(
-                    'Sign In',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                : Text(
+                    l10n?.signIn ?? 'Sign In',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
           ),
           const SizedBox(height: 20),
-          const Row(
+          Row(
             children: [
-              Expanded(child: Divider()),
+              const Expanded(child: Divider()),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  'OR',
-                  style: TextStyle(
+                  l10n?.orDivider ?? 'OR',
+                  style: const TextStyle(
                     color: Color(0xFF78909C),
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              Expanded(child: Divider()),
+              const Expanded(child: Divider()),
             ],
           ),
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: _isSigningIn ? null : _signInWithGoogle,
             icon: const _GoogleMark(),
-            label: const Text('Continue with Google'),
+            label: Text(l10n?.googleSignIn ?? 'Continue with Google'),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
               foregroundColor: const Color(0xFF263238),
@@ -500,7 +502,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     );
   }
 
-  Widget _buildCreateAccountTab() {
+  Widget _buildCreateAccountTab(AppLocalizations? l10n) {
     return SingleChildScrollView(
       child: Form(
         key: _signUpFormKey,
@@ -510,17 +512,17 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             TextFormField(
               controller: _signUpEmailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email_outlined),
+              decoration: InputDecoration(
+                labelText: l10n?.email ?? 'Email',
+                prefixIcon: const Icon(Icons.email_outlined),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter your email';
+                  return l10n?.enterEmailPrompt ?? 'Please enter your email';
                 }
                 final email = value.trim();
                 if (!email.contains('@') || !email.contains('.')) {
-                  return 'Please enter a valid email address';
+                  return l10n?.enterValidEmailPrompt ?? 'Please enter a valid email address';
                 }
                 return null;
               },
@@ -530,8 +532,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               controller: _signUpPasswordController,
               obscureText: _obscureSignUpPassword,
               decoration: InputDecoration(
-                labelText: 'Password',
-                helperText: 'Minimum 8 characters',
+                labelText: l10n?.password ?? 'Password',
+                helperText: l10n?.passwordHelper ?? 'Minimum 8 characters',
                 prefixIcon: const Icon(Icons.lock_outline_rounded),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -548,10 +550,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a password';
+                  return l10n?.enterPasswordPrompt ?? 'Please enter a password';
                 }
                 if (value.length < 8) {
-                  return 'Password must be at least 8 characters';
+                  return l10n?.passwordMinChars ?? 'Password must be at least 8 characters';
                 }
                 return null;
               },
@@ -574,18 +576,19 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text(
-                      'Create Account',
-                      style: TextStyle(
+                  : Text(
+                      l10n?.createAccount ?? 'Create Account',
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'By creating an account, you agree to our Terms of Service and Privacy Policy.',
-              textAlign: TextAlign.center,)
+            Text(
+              l10n?.termsNotice ?? 'By creating an account, you agree to our Terms of Service and Privacy Policy.',
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 enum BalanceType { baki, payment, advance, settled }
 
@@ -15,6 +16,7 @@ class BalanceBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     Color textColor;
     Color bgColor;
     String label;
@@ -22,15 +24,15 @@ class BalanceBadge extends StatelessWidget {
     if (balance > 0) {
       textColor = AppColors.debtText;
       bgColor = AppColors.debtBg;
-      label = '$currencySymbol${balance.toStringAsFixed(2)} Baki';
+      label = '$currencySymbol${balance.toStringAsFixed(2)} ${l10n?.netDue ?? "Due"}';
     } else if (balance < 0) {
       textColor = AppColors.advanceText;
       bgColor = AppColors.advanceBg;
-      label = '$currencySymbol${(-balance).toStringAsFixed(2)} Advance';
+      label = '$currencySymbol${(-balance).toStringAsFixed(2)} ${l10n?.advance ?? "Advance"}';
     } else {
       textColor = AppColors.settledText;
       bgColor = AppColors.settledBg;
-      label = 'Settled';
+      label = l10n?.settled ?? 'Settled';
     }
 
     return Container(

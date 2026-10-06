@@ -9,6 +9,7 @@ import 'package:baki_khata/data/repositories/customer_repository.dart';
 import 'package:baki_khata/data/repositories/settings_repository.dart';
 import 'package:baki_khata/data/repositories/transaction_repository.dart';
 import 'package:baki_khata/features/history/history_screen.dart';
+import 'package:baki_khata/l10n/generated/app_localizations.dart';
 
 void main() {
   final now = DateTime.now();
@@ -95,6 +96,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const HistoryScreen(),
           ),
         ),
@@ -104,7 +107,7 @@ void main() {
 
       // Filter chips show counts
       expect(find.text('All (3)'), findsOneWidget);
-      expect(find.text('Baki (2)'), findsOneWidget);
+      expect(find.text('Credit (2)'), findsOneWidget);
       expect(find.text('Payment (1)'), findsOneWidget);
 
       // Verify all 3 transactions are rendered
@@ -148,6 +151,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const HistoryScreen(),
           ),
         ),
@@ -155,8 +160,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Filter to Baki only
-      await tester.tap(find.text('Baki (2)'));
+      // Filter to Credit only
+      await tester.tap(find.text('Credit (2)'));
       await tester.pumpAndSettle();
 
       expect(find.text('New stock order'), findsOneWidget);
@@ -195,6 +200,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const HistoryScreen(),
           ),
         ),
@@ -243,6 +250,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const Scaffold(
               body: HistoryScreen(),
             ),
@@ -259,7 +268,7 @@ void main() {
       // Verify confirmation dialog
       expect(find.text('Delete Transaction?'), findsOneWidget);
       expect(
-        find.textContaining('Are you sure you want to delete this baki of ৳ 1,200.00 for Rahim Store?'),
+        find.textContaining('Are you sure you want to delete this Credit of ৳ 1,200.00 for Rahim Store?'),
         findsOneWidget,
       );
 
@@ -282,6 +291,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const HistoryScreen(),
           ),
         ),
@@ -289,7 +300,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('No Transactions Yet'), findsOneWidget);
+      expect(find.text('No transactions yet'), findsOneWidget);
       expect(find.text('All (0)'), findsOneWidget);
     });
 
@@ -308,6 +319,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const HistoryScreen(),
           ),
         ),
@@ -340,6 +353,8 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const HistoryScreen(),
           ),
         ),
@@ -358,8 +373,8 @@ void main() {
       expect(find.text('YESTERDAY'), findsOneWidget);
       expect(find.text('TODAY'), findsNothing);
 
-      // Filter to Baki: txNewBaki was Today, so TODAY is shown, YESTERDAY is not
-      await tester.tap(find.text('Baki (2)'));
+      // Filter to Credit: txNewBaki was Today, so TODAY is shown, YESTERDAY is not
+      await tester.tap(find.text('Credit (2)'));
       await tester.pumpAndSettle();
 
       expect(find.text('TODAY'), findsOneWidget);

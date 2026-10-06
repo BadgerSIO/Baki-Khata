@@ -4,6 +4,7 @@ import '../../app.dart';
 import '../../core/current_user_service.dart';
 import '../../core/theme.dart';
 import '../../data/repositories/settings_repository.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../auth/account_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -95,6 +96,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FAF8),
@@ -123,7 +125,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Baki Khata',
+                      l10n?.appName ?? 'Baki Khata',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w800,
@@ -132,7 +134,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "Let's set up your shop",
+                      l10n?.setupShopTitle ?? "Let's set up your shop",
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: const Color(0xFF60706B),
@@ -154,14 +156,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             TextFormField(
                               controller: _shopNameController,
                               textCapitalization: TextCapitalization.words,
-                              decoration: const InputDecoration(
-                                labelText: 'Shop Name *',
+                              decoration: InputDecoration(
+                                labelText: '${l10n?.shopName ?? "Shop Name"} *',
                                 hintText: 'e.g. Bhai Bhai Store',
-                                prefixIcon: Icon(Icons.storefront_rounded),
+                                prefixIcon: const Icon(Icons.storefront_rounded),
                               ),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter your shop name';
+                                  return l10n?.pleaseEnterShopName ?? 'Please enter your shop name';
                                 }
                                 return null;
                               },
@@ -169,10 +171,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             const SizedBox(height: 20),
                             TextFormField(
                               controller: _currencyController,
-                              decoration: const InputDecoration(
-                                labelText: 'Currency Symbol',
+                              decoration: InputDecoration(
+                                labelText: l10n?.currencySymbol ?? 'Currency Symbol',
                                 hintText: 'e.g. ৳, \$, ₹, €',
-                                prefixIcon: Icon(Icons.currency_exchange_rounded),
+                                prefixIcon: const Icon(Icons.currency_exchange_rounded),
                               ),
                             ),
                           ],
@@ -197,30 +199,30 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text(
-                              'Continue',
-                              style: TextStyle(
+                          : Text(
+                              l10n?.continueButton ?? 'Continue',
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                     ),
                     const SizedBox(height: 24),
-                    const Row(
+                    Row(
                       children: [
-                        Expanded(child: Divider()),
+                        const Expanded(child: Divider()),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Text(
-                            'OR',
-                            style: TextStyle(
+                            l10n?.orDivider ?? 'OR',
+                            style: const TextStyle(
                               color: Color(0xFF78909C),
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                        Expanded(child: Divider()),
+                        const Expanded(child: Divider()),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -231,7 +233,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             key: const Key('onboarding_sign_in_button'),
                             onPressed: _isSaving ? null : () => _navigateToAuth(initialIndex: 0),
                             icon: const Icon(Icons.login_rounded, size: 18),
-                            label: const Text('Sign In'),
+                            label: Text(l10n?.signIn ?? 'Sign In'),
                             style: OutlinedButton.styleFrom(
                               minimumSize: const Size.fromHeight(48),
                               shape: RoundedRectangleBorder(
@@ -246,7 +248,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             key: const Key('onboarding_sign_up_button'),
                             onPressed: _isSaving ? null : () => _navigateToAuth(initialIndex: 1),
                             icon: const Icon(Icons.person_add_outlined, size: 18),
-                            label: const Text('Sign Up'),
+                            label: Text(l10n?.signUp ?? 'Sign Up'),
                             style: OutlinedButton.styleFrom(
                               minimumSize: const Size.fromHeight(48),
                               shape: RoundedRectangleBorder(
