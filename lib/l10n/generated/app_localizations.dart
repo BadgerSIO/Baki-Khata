@@ -266,17 +266,53 @@ abstract class AppLocalizations {
   /// **'Give Credit'**
   String get giveCredit;
 
+  /// No description provided for @giveCreditSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gave on credit'**
+  String get giveCreditSubtitle;
+
   /// No description provided for @recordPayment.
   ///
   /// In en, this message translates to:
   /// **'Record Payment'**
   String get recordPayment;
 
+  /// No description provided for @recordPaymentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Received cash'**
+  String get recordPaymentSubtitle;
+
   /// No description provided for @addCustomer.
   ///
   /// In en, this message translates to:
   /// **'Add Customer'**
   String get addCustomer;
+
+  /// No description provided for @addNewCustomerAction.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add Customer'**
+  String get addNewCustomerAction;
+
+  /// No description provided for @relativeToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get relativeToday;
+
+  /// No description provided for @relativeYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get relativeYesterday;
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days ago'**
+  String daysAgo(int count);
 
   /// No description provided for @noTransactionsYet.
   ///

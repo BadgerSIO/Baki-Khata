@@ -94,10 +94,30 @@ class AppLocalizationsBn extends AppLocalizations {
   String get giveCredit => 'বাকি দিন';
 
   @override
+  String get giveCreditSubtitle => 'পণ্য/টাকা দিলাম';
+
+  @override
   String get recordPayment => 'জমা নিন';
 
   @override
+  String get recordPaymentSubtitle => 'টাকা জমা পেলাম';
+
+  @override
   String get addCustomer => 'কাস্টমার যোগ';
+
+  @override
+  String get addNewCustomerAction => '+ নতুন কাস্টমার যোগ করুন';
+
+  @override
+  String get relativeToday => 'আজ';
+
+  @override
+  String get relativeYesterday => 'গতকাল';
+
+  @override
+  String daysAgo(int count) {
+    return '$count দিন আগে';
+  }
 
   @override
   String get noTransactionsYet => 'এখনও কোনো লেনদেন নেই';

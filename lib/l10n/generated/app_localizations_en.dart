@@ -94,10 +94,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get giveCredit => 'Give Credit';
 
   @override
+  String get giveCreditSubtitle => 'Gave on credit';
+
+  @override
   String get recordPayment => 'Record Payment';
 
   @override
+  String get recordPaymentSubtitle => 'Received cash';
+
+  @override
   String get addCustomer => 'Add Customer';
+
+  @override
+  String get addNewCustomerAction => '+ Add Customer';
+
+  @override
+  String get relativeToday => 'Today';
+
+  @override
+  String get relativeYesterday => 'Yesterday';
+
+  @override
+  String daysAgo(int count) {
+    return '$count days ago';
+  }
 
   @override
   String get noTransactionsYet => 'No transactions yet';

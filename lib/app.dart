@@ -291,7 +291,7 @@ class _MainNavigationScaffoldState
         index: currentIndex,
         children: _screens,
       ),
-      floatingActionButton: (currentIndex == 0 || currentIndex == 1)
+      floatingActionButton: (currentIndex == 1)
           ? const QuickActionsFab()
           : null,
       bottomNavigationBar: BottomNavigationBar(

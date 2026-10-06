@@ -9,6 +9,7 @@ import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../customers/customers_screen.dart';
 import 'customer_dialog.dart';
 
 /// Shows the Add/Edit Transaction dialog.
@@ -121,6 +122,14 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
     }
   }
 
+  void _addQuickAmount(double delta) {
+    final current = double.tryParse(_amountController.text.trim()) ?? 0.0;
+    final updated = current + delta;
+    final text = (updated % 1 == 0) ? updated.toInt().toString() : updated.toStringAsFixed(2);
+    _amountController.text = text;
+    _validateAmount(text);
+  }
+
   Future<void> _handleSave() async {
     if (_selectedCustomerId == null || _parsedAmount == null || _isSaving) {
       return;
@@ -166,6 +175,36 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
     }
   }
 
+  String _formatSelectedDate(BuildContext context, DateTime dt) {
+    final now = DateTime.now();
+    final local = dt.toLocal();
+    final today = DateTime(now.year, now.month, now.day);
+    final txDate = DateTime(local.year, local.month, local.day);
+    final dayDiff = today.difference(txDate).inDays;
+    final l10n = AppLocalizations.of(context);
+    final localeName = Localizations.localeOf(context).toString();
+
+    final dateStr = DateFormat.yMMMd(localeName).format(local);
+
+    if (dayDiff == 0) {
+      return '${l10n?.relativeToday ?? "Today"}, $dateStr';
+    } else if (dayDiff == 1) {
+      return '${l10n?.relativeYesterday ?? "Yesterday"}, $dateStr';
+    } else {
+      return dateStr;
+    }
+  }
+
+  String _toBengaliNumber(String input) {
+    const en = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    String res = input;
+    for (int i = 0; i < 10; i++) {
+      res = res.replaceAll(en[i], bn[i]);
+    }
+    return res;
+  }
+
   @override
   Widget build(BuildContext context) {
     final customers = ref.watch(customersStreamProvider).value ?? [];
@@ -176,6 +215,7 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
     final accentColor = isBaki ? AppColors.debtText : AppColors.paymentText;
     final accentBg = isBaki ? AppColors.debtBg : AppColors.paymentBg;
     final l10n = AppLocalizations.of(context);
+    final isBn = Localizations.localeOf(context).languageCode == 'bn';
 
     // Show toggle only when editing an existing transaction
     final showTypeToggle = isEditing;
@@ -185,38 +225,77 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
     final canSave = isCustomerSelected && isAmountValid && !_isSaving;
 
     return AlertDialog(
-      titlePadding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-      actionsPadding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: accentBg,
-              shape: BoxShape.circle,
+      titlePadding: EdgeInsets.zero,
+      contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      actionsPadding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      clipBehavior: Clip.antiAlias,
+      title: Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 12, 14),
+        decoration: BoxDecoration(
+          color: accentBg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: accentColor.withValues(alpha: 0.15),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                isBaki ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                size: 20,
+                color: accentColor,
+              ),
             ),
-            child: Icon(
-              isBaki
-                  ? Icons.arrow_upward_rounded
-                  : Icons.arrow_downward_rounded,
-              size: 20,
-              color: accentColor,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    isEditing
+                        ? (l10n?.editTransaction ?? 'Edit Transaction')
+                        : (isBaki
+                            ? (l10n?.giveCreditTitle ?? 'Give Credit')
+                            : (l10n?.recordPaymentTitle ?? 'Record Payment')),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: accentColor,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isBaki
+                        ? (l10n?.giveCreditSubtitle ?? 'Gave on credit')
+                        : (l10n?.recordPaymentSubtitle ?? 'Received cash'),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: accentColor.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            isEditing
-                ? (l10n?.editTransaction ?? 'Edit Transaction')
-                : (isBaki ? (l10n?.giveCreditTitle ?? 'Give Credit') : (l10n?.recordPaymentTitle ?? 'Record Payment')),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: accentColor,
-              fontSize: 18,
+            IconButton(
+              icon: const Icon(Icons.close_rounded, size: 20),
+              color: const Color(0xFF78909C),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       content: Form(
         key: _formKey,
@@ -225,10 +304,8 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 8),
-
-              // 1. Customer Picker / Selected Customer Display
-              _buildCustomerSection(customers, l10n),
+              // 1. Customer Selection Section
+              _buildCustomerSection(customers, l10n, isBn),
 
               // 2. Segmented Type Toggle (only when editing existing transaction)
               if (showTypeToggle) ...[
@@ -238,33 +315,47 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
 
               const SizedBox(height: 16),
 
-              // 3. Amount Field
+              // 3. Hero Amount Input Field
               TextFormField(
                 controller: _amountController,
                 autofocus: widget.preselectedCustomerId != null,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 onChanged: _validateAmount,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: accentColor,
+                ),
                 decoration: InputDecoration(
                   labelText: '${l10n?.amount ?? "Amount"} *',
                   hintText: '0.00',
                   prefixText: '$currency ',
                   prefixStyle: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 22,
                     color: accentColor,
                   ),
                   errorText: _amountError,
+                  fillColor: accentBg.withValues(alpha: 0.25),
+                  filled: true,
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(color: accentColor, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: accentColor.withValues(alpha: 0.3)),
                   ),
                 ),
               ),
+              const SizedBox(height: 8),
+
+              // Quick Amount Preset Chips
+              _buildQuickAmountChips(currency, accentColor, accentBg, isBn),
 
               const SizedBox(height: 14),
 
-              // 4. Description Field (optional, single line)
+              // 4. Description Field (optional)
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 1,
@@ -272,13 +363,15 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                 decoration: InputDecoration(
                   labelText: l10n?.notesDescription ?? 'Description (optional)',
                   hintText: l10n?.notesHint ?? 'e.g. Rice sacks, cash partial, etc.',
-                  prefixIcon: const Icon(Icons.notes_outlined),
+                  prefixIcon: const Icon(Icons.notes_rounded, size: 20),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
               ),
 
               const SizedBox(height: 14),
 
-              // 5. Date Picker (defaults to today, internal UTC)
+              // 5. Date Picker (with localized formatted date)
               InkWell(
                 borderRadius: BorderRadius.circular(12),
                 onTap: () async {
@@ -301,22 +394,27 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                     });
                   }
                 },
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: l10n?.date ?? 'Transaction Date',
-                    prefixIcon: const Icon(Icons.calendar_today_outlined),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF7FAF8),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFCFD8DC)),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        DateFormat.yMMMd().format(_selectedDate),
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      Icon(Icons.calendar_today_rounded, size: 18, color: accentColor),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _formatSelectedDate(context, _selectedDate),
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                        ),
                       ),
-                      const Text(
-                        'Change',
+                      Text(
+                        isBn ? 'পরিবর্তন' : (l10n?.edit ?? 'Change'),
                         style: TextStyle(
-                          color: AppColors.primary,
+                          color: accentColor,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -337,7 +435,7 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
               child: OutlinedButton(
                 onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(44),
+                  minimumSize: const Size.fromHeight(46),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -355,10 +453,11 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
               child: FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: accentColor,
-                  minimumSize: const Size.fromHeight(44),
+                  minimumSize: const Size.fromHeight(46),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 0,
                 ),
                 onPressed: canSave ? _handleSave : null,
                 child: _isSaving
@@ -381,6 +480,46 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildQuickAmountChips(
+    String currencySymbol,
+    Color accentColor,
+    Color accentBg,
+    bool isBn,
+  ) {
+    const chips = [100.0, 500.0, 1000.0, 2000.0];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: chips.map((val) {
+          final raw = (val % 1 == 0) ? val.toInt().toString() : val.toStringAsFixed(0);
+          final label = isBn ? _toBengaliNumber(raw) : raw;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Material(
+              color: accentBg.withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(16),
+              child: InkWell(
+                onTap: () => _addQuickAmount(val),
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Text(
+                    '+$currencySymbol$label',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: accentColor,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -407,25 +546,42 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
     );
   }
 
-  Widget _buildCustomerSection(List<Customer> customers, AppLocalizations? l10n) {
+  Widget _buildCustomerSection(
+    List<Customer> customers,
+    AppLocalizations? l10n,
+    bool isBn,
+  ) {
     if (_selectedCustomerId != null) {
       final customer = _selectedCustomer ??
           customers.where((c) => c.id == _selectedCustomerId).firstOrNull;
 
       if (customer != null) {
+        final balances = ref.watch(customerBalancesProvider);
+        final currentBal = balances[customer.id] ?? 0.0;
+        final hasDue = currentBal > 0;
+        final hasAdvance = currentBal < 0;
+
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: AppColors.primaryContainer.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.35),
+              color: AppColors.primary.withValues(alpha: 0.3),
+              width: 1.2,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [
               CircleAvatar(
-                radius: 18,
+                radius: 20,
                 backgroundColor: AppColors.primaryContainer,
                 child: Text(
                   customer.name.trim().isNotEmpty
@@ -434,10 +590,11 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
+                    fontSize: 15,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,36 +603,106 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                       customer.name,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 15,
+                        color: Color(0xFF191C1B),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (customer.phone != null &&
-                        customer.phone!.trim().isNotEmpty)
-                      Text(
-                        customer.phone!.trim(),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF60706B),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    const SizedBox(height: 3),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (customer.phone != null &&
+                            customer.phone!.trim().isNotEmpty)
+                          Text(
+                            customer.phone!.trim(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF78909C),
+                            ),
+                          ),
+                        if (hasDue)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.debtBg,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isBn
+                                  ? 'বাকি: ৳${_toBengaliNumber(currentBal.toStringAsFixed(0))}'
+                                  : 'Due: ৳${currentBal.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.debtText,
+                              ),
+                            ),
+                          )
+                        else if (hasAdvance)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.paymentBg,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isBn
+                                  ? 'অগ্রিম: ৳${_toBengaliNumber(currentBal.abs().toStringAsFixed(0))}'
+                                  : 'Advance: ৳${currentBal.abs().toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.paymentText,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),
-              if (widget.preselectedCustomerId == null)
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 18),
-                  tooltip: 'Change customer',
-                  onPressed: () {
+              if (widget.preselectedCustomerId == null) ...[
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () {
                     setState(() {
                       _selectedCustomerId = null;
                       _selectedCustomer = null;
                     });
                   },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.sync_alt_rounded,
+                          size: 13,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          isBn ? 'বদলান' : (l10n?.edit ?? 'Change'),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+              ],
             ],
           ),
         );
@@ -506,6 +733,8 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
             labelText: '${l10n?.selectCustomer ?? "Select Customer"} *',
             hintText: l10n?.searchCustomersHint ?? 'Search name, phone, address...',
             prefixIcon: const Icon(Icons.person_search_outlined),
+            filled: true,
+            fillColor: const Color(0xFFF7FAF8),
             suffixIcon: _customerSearchQuery.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.clear_rounded, size: 18),
@@ -531,7 +760,9 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                 Text(
                   _customerSearchQuery.isEmpty
                       ? (l10n?.noCustomersFound ?? 'No customers created yet')
-                      : (l10n != null ? '${l10n.noCustomersFound}: "$_customerSearchQuery"' : 'No customer found for "$_customerSearchQuery"'),
+                      : (l10n != null
+                          ? '${l10n.noCustomersFound}: "$_customerSearchQuery"'
+                          : 'No customer found for "$_customerSearchQuery"'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 13,
@@ -571,15 +802,17 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
             ),
           )
         else
-          Container(
-            decoration: BoxDecoration(
+          Material(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE0E5E2)),
+              side: const BorderSide(color: Color(0xFFE0E5E2)),
             ),
+            clipBehavior: Clip.antiAlias,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                for (final c in filteredCustomers.take(5)) ...[
+                for (final c in filteredCustomers.take(4)) ...[
                   ListTile(
                     dense: true,
                     leading: CircleAvatar(
@@ -620,11 +853,11 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                   ),
                   const Divider(height: 1, indent: 12, endIndent: 12),
                 ],
-                if (filteredCustomers.length > 5) ...[
+                if (filteredCustomers.length > 4) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Text(
-                      '+${filteredCustomers.length - 5} more, refine search above',
+                      '+${filteredCustomers.length - 4} more, refine search above',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 11,
@@ -641,9 +874,9 @@ class _TransactionDialogState extends ConsumerState<TransactionDialog> {
                     color: AppColors.primary,
                     size: 20,
                   ),
-                  title: const Text(
-                    'Add New Customer',
-                    style: TextStyle(
+                  title: Text(
+                    l10n?.addNewCustomer ?? 'Add New Customer',
+                    style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,

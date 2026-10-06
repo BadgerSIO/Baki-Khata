@@ -30,8 +30,19 @@
   "recentTransactions": "Recent Transactions",
   "viewAll": "View all",
   "giveCredit": "Give Credit",
+  "giveCreditSubtitle": "Gave on credit",
   "recordPayment": "Record Payment",
+  "recordPaymentSubtitle": "Received cash",
   "addCustomer": "Add Customer",
+  "addNewCustomerAction": "+ Add Customer",
+  "relativeToday": "Today",
+  "relativeYesterday": "Yesterday",
+  "daysAgo": "{count} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "noTransactionsYet": "No transactions yet",
   "noTransactionsDescription": "Record customer credit or received payments to see recent activity here.",
 

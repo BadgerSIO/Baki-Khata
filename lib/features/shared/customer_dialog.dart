@@ -144,11 +144,14 @@ class _CustomerDialogState extends ConsumerState<CustomerDialog> {
             ),
           ),
           const SizedBox(width: 12),
-          Text(
-            isEditing
-                ? (l10n?.editCustomer ?? 'Edit Customer')
-                : (l10n?.addNewCustomer ?? 'Add New Customer'),
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          Expanded(
+            child: Text(
+              isEditing
+                  ? (l10n?.editCustomer ?? 'Edit Customer')
+                  : (l10n?.addNewCustomer ?? 'Add New Customer'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

@@ -13,9 +13,9 @@ A clean, modern, and production-ready **Flutter application** designed for small
 ## ✨ Features
 
 - **📊 Comprehensive Financial Dashboard**:
-  - Real-time aggregate overview: **Total Net Balance**, **Receivables (Baki)**, **Payables (Advance)**, and Active Customer count.
-  - Recent transactions activity feed with instant status tags.
-  - Quick action FABs for lightning-fast customer & transaction entry.
+  - Unified **Hero Ledger Card** displaying **Total Outstanding Due**, **Active Customer Count**, and daily Baki/Collection stats.
+  - High-contrast tactile action buttons for fast entry (**Give Credit**, **Record Payment**, **Add Customer**).
+  - Recent transactions activity feed with direct customer detail navigation.
 
 - **👥 Customer Ledger Management**:
   - Detailed customer profiles with contact numbers, addresses, and balance badges (Debit / Credit / Settled).
@@ -23,6 +23,7 @@ A clean, modern, and production-ready **Flutter application** designed for small
   - Complete chronological transaction history per customer.
 
 - **💳 Transactions & Bookkeeping**:
+  - One-tap **Quick Amount Chips** (`+৳100`, `+৳500`, `+৳1000`, `+৳2000`) for lightning-fast entry.
   - Record **Baki (Debit)** and **Payment (Credit)** entries with custom timestamps and notes.
   - Automatic balance calculation and running balance audit trail.
   - WhatsApp & SMS customer reminders / statement sharing.
