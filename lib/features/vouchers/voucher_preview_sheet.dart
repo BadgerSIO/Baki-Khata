@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gal/gal.dart';
+import '../../core/utils/gallery_saver.dart';
 import '../../core/theme.dart';
 import 'voucher_card.dart';
 import 'voucher_model.dart';
@@ -174,14 +174,16 @@ class _VoucherPreviewSheetState extends State<VoucherPreviewSheet> {
             ),
             duration: const Duration(seconds: 4),
             behavior: SnackBarBehavior.floating,
-            action: SnackBarAction(
-              label: isBn ? 'গ্যালারি খুলুন' : 'Open Gallery',
-              onPressed: () {
-                try {
-                  Gal.open();
-                } catch (_) {}
-              },
-            ),
+            action: GallerySaver.isSupported
+                ? SnackBarAction(
+                    label: isBn ? 'গ্যালারি খুলুন' : 'Open Gallery',
+                    onPressed: () {
+                      try {
+                        GallerySaver.openGallery();
+                      } catch (_) {}
+                    },
+                  )
+                : null,
           ),
         );
       } else {
@@ -339,7 +341,7 @@ class _VoucherPreviewSheetState extends State<VoucherPreviewSheet> {
                       ),
                       onPressed: () {
                         try {
-                          Gal.open();
+                          GallerySaver.openGallery();
                         } catch (_) {}
                       },
                       child: Text(

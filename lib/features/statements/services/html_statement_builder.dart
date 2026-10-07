@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:intl/intl.dart';
+import '../../../core/utils/file_helper.dart';
 import '../../../data/models/app_settings.dart';
 import '../../vouchers/voucher_model.dart';
 import '../models/statement_models.dart';
@@ -464,15 +464,12 @@ class HtmlStatementBuilder {
 
   static String? _getImageDataUri(String? path) {
     if (path == null || path.isEmpty) return null;
-    try {
-      final file = File(path);
-      if (file.existsSync()) {
-        final bytes = file.readAsBytesSync();
-        final ext = path.toLowerCase().endsWith('.png') ? 'png' : 'jpeg';
-        final b64 = base64Encode(bytes);
-        return 'data:image/$ext;base64,$b64';
-      }
-    } catch (_) {}
+    final bytes = readFileBytesSync(path);
+    if (bytes != null) {
+      final ext = path.toLowerCase().endsWith('.png') ? 'png' : 'jpeg';
+      final b64 = base64Encode(bytes);
+      return 'data:image/$ext;base64,$b64';
+    }
     return null;
   }
 

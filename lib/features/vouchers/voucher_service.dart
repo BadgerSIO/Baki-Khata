@@ -1,14 +1,13 @@
-import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:gal/gal.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/utils/file_helper.dart';
+import '../../core/utils/gallery_saver.dart';
 import 'voucher_model.dart';
 
 enum WhatsAppLaunchStatus {
@@ -161,7 +160,7 @@ class VoucherService {
     }
   }
 
-  /// Saves the rendered voucher image directly to the device's public photo gallery using gal.
+  /// Saves the rendered voucher image directly to the device's public photo gallery using GallerySaver.
   static Future<bool> saveVoucherToGallery({
     required GlobalKey repaintKey,
     required VoucherData data,
@@ -172,8 +171,7 @@ class VoucherService {
     try {
       final sanitizedId = data.voucherNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
       final fileName = 'voucher_${sanitizedId}_${DateTime.now().millisecondsSinceEpoch}';
-      await Gal.putImageBytes(bytes, name: fileName);
-      return true;
+      return await GallerySaver.saveImageBytes(bytes, name: fileName);
     } catch (e) {
       debugPrint('[VoucherService] Failed to save image to gallery: $e');
       return false;
@@ -208,14 +206,13 @@ class VoucherService {
     if (bytes == null) return false;
 
     try {
-      final tempDir = await getTemporaryDirectory();
       final sanitizedId = data.voucherNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
-      final filePath = '${tempDir.path}/voucher_$sanitizedId.png';
-      final file = File(filePath);
-      await file.writeAsBytes(bytes);
-
       final summary = generateTextReceipt(data, isBengali: isBengali);
-      final xFile = XFile(file.path, mimeType: 'image/png', name: 'voucher_$sanitizedId.png');
+      final xFile = XFile.fromData(
+        bytes,
+        mimeType: 'image/png',
+        name: 'voucher_$sanitizedId.png',
+      );
 
       final result = await Share.shareXFiles(
         [xFile],
@@ -229,7 +226,7 @@ class VoucherService {
     }
   }
 
-  /// Saves the voucher image to device cache and presents the user with save/export options (Legacy/Compatibility).
+  /// Saves the voucher image to device storage and presents the user with save/export options (Legacy/Compatibility).
   static Future<String?> saveVoucherImageToDevice({
     required GlobalKey repaintKey,
     required VoucherData data,
@@ -238,12 +235,8 @@ class VoucherService {
     if (bytes == null) return null;
 
     try {
-      final dir = await getApplicationDocumentsDirectory();
       final sanitizedId = data.voucherNumber.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
-      final filePath = '${dir.path}/voucher_$sanitizedId.png';
-      final file = File(filePath);
-      await file.writeAsBytes(bytes);
-      return filePath;
+      return await saveFileToDisk(bytes, 'voucher_$sanitizedId.png');
     } catch (e) {
       debugPrint('[VoucherService] Failed to save voucher image: $e');
       return null;

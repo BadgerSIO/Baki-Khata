@@ -1,7 +1,9 @@
 {
   "version": 2,
-  "cleanUrls": true,
+  "framework": null,
+  "buildCommand": "bash vercel-build.sh",
   "outputDirectory": "build/web",
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/privacy",

@@ -1,50 +1,15 @@
-import 'dart:io';
-import 'package:flutter/services.dart';
-import 'package:bangla_pdf_fixer/bangla_pdf_fixer.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 
+import '../../../core/utils/file_helper.dart';
 import '../../vouchers/voucher_model.dart';
 import '../models/statement_models.dart';
+import 'pdf_font_helper.dart';
 
 class PdfDocumentBuilder {
-  static ShapedFont? _cachedRegFont;
-  static ShapedFont? _cachedBoldFont;
-  static ShapedFont? _cachedLatinFont;
-
   /// Loads and caches the TrueType Bengali and Latin fonts.
-  static Future<void> _ensureFontsLoaded() async {
-    if (_cachedRegFont != null && _cachedBoldFont != null && _cachedLatinFont != null) {
-      return;
-    }
-
-    try {
-      Uint8List regBytes;
-      Uint8List boldBytes;
-      Uint8List latinBytes;
-
-      try {
-        final regData = await rootBundle.load('assets/fonts/NotoSansBengali-Regular.ttf');
-        final boldData = await rootBundle.load('assets/fonts/NotoSansBengali-Bold.ttf');
-        final latinData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
-        regBytes = regData.buffer.asUint8List();
-        boldBytes = boldData.buffer.asUint8List();
-        latinBytes = latinData.buffer.asUint8List();
-      } catch (_) {
-        // Fallback for tests or local execution
-        regBytes = await File('assets/fonts/NotoSansBengali-Regular.ttf').readAsBytes();
-        boldBytes = await File('assets/fonts/NotoSansBengali-Bold.ttf').readAsBytes();
-        latinBytes = await File('assets/fonts/NotoSans-Regular.ttf').readAsBytes();
-      }
-
-      _cachedRegFont = ShapedFont.fromBytes(regBytes);
-      _cachedBoldFont = ShapedFont.fromBytes(boldBytes);
-      _cachedLatinFont = ShapedFont.fromBytes(latinBytes);
-    } catch (e) {
-      // ignore
-    }
-  }
+  static Future<void> _ensureFontsLoaded() => PdfFontHelper.ensureFontsLoaded();
 
   /// Formats currency with optional Bengali digits.
   static String formatAmount(double amount, {bool isBengali = true, String currencySymbol = '৳'}) {
@@ -70,33 +35,8 @@ class PdfDocumentBuilder {
     bool bold = false,
     double size = 9,
     PdfColor? color,
-    ShapedTextAlign align = ShapedTextAlign.start,
-  }) {
-    final primaryFont = bold ? (_cachedBoldFont ?? _cachedRegFont) : _cachedRegFont;
-    final fallbacks = <ShapedFont>[
-      ?_cachedLatinFont,
-    ];
-
-    if (primaryFont == null) {
-      return pw.Text(
-        str,
-        style: pw.TextStyle(
-          fontSize: size,
-          fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-          color: color,
-        ),
-      );
-    }
-
-    return BanglaText(
-      str,
-      font: primaryFont,
-      fallbackFonts: fallbacks,
-      fontSize: size,
-      color: color ?? PdfColor.fromHex('#212121'),
-      align: align,
-    );
-  }
+    AppPdfTextAlign align = AppPdfTextAlign.start,
+  }) => PdfFontHelper.text(str, bold: bold, size: size, color: color, align: align);
 
   /// Builds a complete single customer statement [pw.Document].
   static Future<pw.Document> buildCustomerStatementDoc(
@@ -122,23 +62,19 @@ class PdfDocumentBuilder {
     // Optional logo image
     pw.MemoryImage? logoImage;
     if (data.settings.shopLogoPath != null && data.settings.shopLogoPath!.isNotEmpty) {
-      try {
-        final f = File(data.settings.shopLogoPath!);
-        if (f.existsSync()) {
-          logoImage = pw.MemoryImage(f.readAsBytesSync());
-        }
-      } catch (_) {}
+      final bytes = readFileBytesSync(data.settings.shopLogoPath!);
+      if (bytes != null) {
+        logoImage = pw.MemoryImage(bytes);
+      }
     }
 
     // Optional custom seal image
     pw.MemoryImage? customSealImage;
     if (data.settings.shopSealType == 'custom' && data.settings.customSealPath != null) {
-      try {
-        final f = File(data.settings.customSealPath!);
-        if (f.existsSync()) {
-          customSealImage = pw.MemoryImage(f.readAsBytesSync());
-        }
-      } catch (_) {}
+      final bytes = readFileBytesSync(data.settings.customSealPath!);
+      if (bytes != null) {
+        customSealImage = pw.MemoryImage(bytes);
+      }
     }
 
     final doc = pw.Document();
@@ -155,13 +91,13 @@ class PdfDocumentBuilder {
             pw.TableRow(
               decoration: pw.BoxDecoration(color: PdfColor.fromHex('#004d40')),
               children: [
-                _cell(text(isBengali ? 'নং' : 'SL', bold: true, size: 8.5, color: PdfColors.white, align: ShapedTextAlign.center)),
+                _cell(text(isBengali ? 'নং' : 'SL', bold: true, size: 8.5, color: PdfColors.white, align: AppPdfTextAlign.center)),
                 _cell(text(isBengali ? 'তারিখ' : 'Date', bold: true, size: 8.5, color: PdfColors.white)),
                 _cell(text(isBengali ? 'চালান #' : 'Voucher #', bold: true, size: 8.5, color: PdfColors.white)),
                 _cell(text(isBengali ? 'বিবরণ ও পণ্য' : 'Description', bold: true, size: 8.5, color: PdfColors.white)),
-                _cell(text(isBengali ? 'বাকি (+)' : 'Debit (+)', bold: true, size: 8.5, color: PdfColors.white, align: ShapedTextAlign.end)),
-                _cell(text(isBengali ? 'জমা (-)' : 'Credit (-)', bold: true, size: 8.5, color: PdfColors.white, align: ShapedTextAlign.end)),
-                _cell(text(isBengali ? 'চলতি জের' : 'Balance', bold: true, size: 8.5, color: PdfColors.white, align: ShapedTextAlign.end)),
+                _cell(text(isBengali ? 'বাকি (+)' : 'Debit (+)', bold: true, size: 8.5, color: PdfColors.white, align: AppPdfTextAlign.end)),
+                _cell(text(isBengali ? 'জমা (-)' : 'Credit (-)', bold: true, size: 8.5, color: PdfColors.white, align: AppPdfTextAlign.end)),
+                _cell(text(isBengali ? 'চলতি জের' : 'Balance', bold: true, size: 8.5, color: PdfColors.white, align: AppPdfTextAlign.end)),
               ],
             ),
           );
@@ -171,13 +107,13 @@ class PdfDocumentBuilder {
             pw.TableRow(
               decoration: pw.BoxDecoration(color: PdfColor.fromHex('#f5f5f5')),
               children: [
-                _cell(text('-', size: 8.5, align: ShapedTextAlign.center)),
+                _cell(text('-', size: 8.5, align: AppPdfTextAlign.center)),
                 _cell(text(isBengali ? 'প্রারম্ভিক জের' : 'Opening Bal', bold: true, size: 8.5)),
                 _cell(text('-', size: 8.5)),
                 _cell(text(isBengali ? 'হিসাব শুরু করার পূর্বের জের' : 'Balance carried forward', size: 8.5)),
-                _cell(text(data.openingBalance > 0 ? openingFormatted : '-', size: 8.5, align: ShapedTextAlign.end)),
-                _cell(text(data.openingBalance < 0 ? openingFormatted : '-', size: 8.5, align: ShapedTextAlign.end)),
-                _cell(text(openingFormatted, bold: true, size: 8.5, align: ShapedTextAlign.end)),
+                _cell(text(data.openingBalance > 0 ? openingFormatted : '-', size: 8.5, align: AppPdfTextAlign.end)),
+                _cell(text(data.openingBalance < 0 ? openingFormatted : '-', size: 8.5, align: AppPdfTextAlign.end)),
+                _cell(text(openingFormatted, bold: true, size: 8.5, align: AppPdfTextAlign.end)),
               ],
             ),
           );
@@ -218,13 +154,13 @@ class PdfDocumentBuilder {
               pw.TableRow(
                 decoration: isAlt ? pw.BoxDecoration(color: PdfColor.fromHex('#fbfcfb')) : null,
                 children: [
-                  _cell(text(sl, size: 8.5, align: ShapedTextAlign.center)),
+                  _cell(text(sl, size: 8.5, align: AppPdfTextAlign.center)),
                   _cell(text(dateStr, size: 8.5)),
                   _cell(text(entry.voucherNumber, size: 8.5)),
                   _cell(text(descText, size: 8.5)),
-                  _cell(text(debitStr, bold: entry.isBaki, size: 8.5, color: entry.isBaki ? PdfColor.fromHex('#b71c1c') : null, align: ShapedTextAlign.end)),
-                  _cell(text(creditStr, bold: !entry.isBaki, size: 8.5, color: !entry.isBaki ? PdfColor.fromHex('#1b5e20') : null, align: ShapedTextAlign.end)),
-                  _cell(text(runningStr, bold: true, size: 8.5, align: ShapedTextAlign.end)),
+                  _cell(text(debitStr, bold: entry.isBaki, size: 8.5, color: entry.isBaki ? PdfColor.fromHex('#b71c1c') : null, align: AppPdfTextAlign.end)),
+                  _cell(text(creditStr, bold: !entry.isBaki, size: 8.5, color: !entry.isBaki ? PdfColor.fromHex('#1b5e20') : null, align: AppPdfTextAlign.end)),
+                  _cell(text(runningStr, bold: true, size: 8.5, align: AppPdfTextAlign.end)),
                 ],
               ),
             );
@@ -238,10 +174,10 @@ class PdfDocumentBuilder {
                 _cell(text('', size: 8.5)),
                 _cell(text('', size: 8.5)),
                 _cell(text('', size: 8.5)),
-                _cell(text(isBengali ? 'সর্বমোট যোগফল:' : 'Total Sum:', bold: true, size: 8.5, align: ShapedTextAlign.end)),
-                _cell(text(bakiFormatted, bold: true, size: 8.5, color: PdfColor.fromHex('#b71c1c'), align: ShapedTextAlign.end)),
-                _cell(text(paymentFormatted, bold: true, size: 8.5, color: PdfColor.fromHex('#1b5e20'), align: ShapedTextAlign.end)),
-                _cell(text(closingFormatted, bold: true, size: 8.5, align: ShapedTextAlign.end)),
+                _cell(text(isBengali ? 'সর্বমোট যোগফল:' : 'Total Sum:', bold: true, size: 8.5, align: AppPdfTextAlign.end)),
+                _cell(text(bakiFormatted, bold: true, size: 8.5, color: PdfColor.fromHex('#b71c1c'), align: AppPdfTextAlign.end)),
+                _cell(text(paymentFormatted, bold: true, size: 8.5, color: PdfColor.fromHex('#1b5e20'), align: AppPdfTextAlign.end)),
+                _cell(text(closingFormatted, bold: true, size: 8.5, align: AppPdfTextAlign.end)),
               ],
             ),
           );
@@ -447,10 +383,10 @@ class PdfDocumentBuilder {
                       child: pw.Column(
                         mainAxisAlignment: pw.MainAxisAlignment.center,
                         children: [
-                          text(isBengali ? '[ অনুমোদিত ]' : '[ VERIFIED ]', bold: true, size: 7.5, color: PdfColor.fromHex('#004d40'), align: ShapedTextAlign.center),
-                          text(shopName, bold: true, size: 8.5, color: PdfColor.fromHex('#004d40'), align: ShapedTextAlign.center),
-                          text(isBengali ? 'যাচাইকৃত খতিয়ান' : 'Audited Ledger', size: 6.5, color: PdfColor.fromHex('#00695c'), align: ShapedTextAlign.center),
-                          text(formatDate(data.generatedAt, isBengali: isBengali), size: 6.5, color: PdfColor.fromHex('#546e7a'), align: ShapedTextAlign.center),
+                          text(isBengali ? '[ অনুমোদিত ]' : '[ VERIFIED ]', bold: true, size: 7.5, color: PdfColor.fromHex('#004d40'), align: AppPdfTextAlign.center),
+                          text(shopName, bold: true, size: 8.5, color: PdfColor.fromHex('#004d40'), align: AppPdfTextAlign.center),
+                          text(isBengali ? 'যাচাইকৃত খতিয়ান' : 'Audited Ledger', size: 6.5, color: PdfColor.fromHex('#00695c'), align: AppPdfTextAlign.center),
+                          text(formatDate(data.generatedAt, isBengali: isBengali), size: 6.5, color: PdfColor.fromHex('#546e7a'), align: AppPdfTextAlign.center),
                         ],
                       ),
                     ),
@@ -474,7 +410,7 @@ class PdfDocumentBuilder {
                     : 'Computer-generated digital ledger statement | No alterations valid | Baki Khata App',
                 size: 7.5,
                 color: PdfColor.fromHex('#78909c'),
-                align: ShapedTextAlign.center,
+                align: AppPdfTextAlign.center,
               ),
             ),
           ];
@@ -520,12 +456,12 @@ class PdfDocumentBuilder {
             pw.TableRow(
               decoration: pw.BoxDecoration(color: PdfColor.fromHex('#004d40')),
               children: [
-                _cell(text(isBengali ? 'নং' : 'SL', bold: true, size: 8.5, color: PdfColors.white, align: ShapedTextAlign.center)),
+                _cell(text(isBengali ? 'নং' : 'SL', bold: true, size: 8.5, color: PdfColors.white, align: AppPdfTextAlign.center)),
                 _cell(text(isBengali ? 'খরিদ্দারের নাম ও ফোন' : 'Customer Name & Phone', bold: true, size: 8.5, color: PdfColors.white)),
-                _cell(text(isBengali ? 'পূর্বের জের' : 'Opening Bal', bold: true, size: 8.5, color: PdfColors.white, align: ShapedTextAlign.end)),
-                _cell(text(isBengali ? 'বাকি (+)' : 'Period Debit (+)', bold: true, size: 8.5, color: PdfColors.white, align: ShapedTextAlign.end)),
-                _cell(text(isBengali ? 'জমা (-)' : 'Period Credit (-)', bold: true, size: 8.5, color: PdfColors.white, align: ShapedTextAlign.end)),
-                _cell(text(isBengali ? 'বর্তমান বাকি' : 'Closing Balance', bold: true, size: 8.5, color: PdfColors.white, align: ShapedTextAlign.end)),
+                _cell(text(isBengali ? 'পূর্বের জের' : 'Opening Bal', bold: true, size: 8.5, color: PdfColors.white, align: AppPdfTextAlign.end)),
+                _cell(text(isBengali ? 'বাকি (+)' : 'Period Debit (+)', bold: true, size: 8.5, color: PdfColors.white, align: AppPdfTextAlign.end)),
+                _cell(text(isBengali ? 'জমা (-)' : 'Period Credit (-)', bold: true, size: 8.5, color: PdfColors.white, align: AppPdfTextAlign.end)),
+                _cell(text(isBengali ? 'বর্তমান বাকি' : 'Closing Balance', bold: true, size: 8.5, color: PdfColors.white, align: AppPdfTextAlign.end)),
               ],
             ),
           );
@@ -548,12 +484,12 @@ class PdfDocumentBuilder {
               pw.TableRow(
                 decoration: isAlt ? pw.BoxDecoration(color: PdfColor.fromHex('#fbfcfb')) : null,
                 children: [
-                  _cell(text(sl, size: 8.5, align: ShapedTextAlign.center)),
+                  _cell(text(sl, size: 8.5, align: AppPdfTextAlign.center)),
                   _cell(text(namePhone, bold: true, size: 8.5)),
-                  _cell(text(op, size: 8.5, align: ShapedTextAlign.end)),
-                  _cell(text(bk, size: 8.5, color: PdfColor.fromHex('#b71c1c'), align: ShapedTextAlign.end)),
-                  _cell(text(pm, size: 8.5, color: PdfColor.fromHex('#1b5e20'), align: ShapedTextAlign.end)),
-                  _cell(text(cl, bold: true, size: 8.5, color: item.closingBalance > 0 ? PdfColor.fromHex('#b71c1c') : PdfColor.fromHex('#1b5e20'), align: ShapedTextAlign.end)),
+                  _cell(text(op, size: 8.5, align: AppPdfTextAlign.end)),
+                  _cell(text(bk, size: 8.5, color: PdfColor.fromHex('#b71c1c'), align: AppPdfTextAlign.end)),
+                  _cell(text(pm, size: 8.5, color: PdfColor.fromHex('#1b5e20'), align: AppPdfTextAlign.end)),
+                  _cell(text(cl, bold: true, size: 8.5, color: item.closingBalance > 0 ? PdfColor.fromHex('#b71c1c') : PdfColor.fromHex('#1b5e20'), align: AppPdfTextAlign.end)),
                 ],
               ),
             );
@@ -566,10 +502,10 @@ class PdfDocumentBuilder {
               children: [
                 _cell(text('', size: 8.5)),
                 _cell(text(isBengali ? 'সর্বমোট দোকান জের:' : 'Total Store Balance:', bold: true, size: 8.5)),
-                _cell(text(totalOpening, bold: true, size: 8.5, align: ShapedTextAlign.end)),
-                _cell(text(totalBaki, bold: true, size: 8.5, color: PdfColor.fromHex('#b71c1c'), align: ShapedTextAlign.end)),
-                _cell(text(totalPayment, bold: true, size: 8.5, color: PdfColor.fromHex('#1b5e20'), align: ShapedTextAlign.end)),
-                _cell(text(totalClosing, bold: true, size: 8.5, color: PdfColor.fromHex('#b71c1c'), align: ShapedTextAlign.end)),
+                _cell(text(totalOpening, bold: true, size: 8.5, align: AppPdfTextAlign.end)),
+                _cell(text(totalBaki, bold: true, size: 8.5, color: PdfColor.fromHex('#b71c1c'), align: AppPdfTextAlign.end)),
+                _cell(text(totalPayment, bold: true, size: 8.5, color: PdfColor.fromHex('#1b5e20'), align: AppPdfTextAlign.end)),
+                _cell(text(totalClosing, bold: true, size: 8.5, color: PdfColor.fromHex('#b71c1c'), align: AppPdfTextAlign.end)),
               ],
             ),
           );
@@ -665,9 +601,9 @@ class PdfDocumentBuilder {
                     child: pw.Column(
                       mainAxisAlignment: pw.MainAxisAlignment.center,
                       children: [
-                        text(isBengali ? '[ মাস্টার খতিয়ান ]' : '[ MASTER AUDIT ]', bold: true, size: 7, color: PdfColor.fromHex('#004d40'), align: ShapedTextAlign.center),
-                        text(shopName, bold: true, size: 8, color: PdfColor.fromHex('#004d40'), align: ShapedTextAlign.center),
-                        text(formatDate(data.generatedAt, isBengali: isBengali), size: 6.5, color: PdfColor.fromHex('#546e7a'), align: ShapedTextAlign.center),
+                        text(isBengali ? '[ মাস্টার খতিয়ান ]' : '[ MASTER AUDIT ]', bold: true, size: 7, color: PdfColor.fromHex('#004d40'), align: AppPdfTextAlign.center),
+                        text(shopName, bold: true, size: 8, color: PdfColor.fromHex('#004d40'), align: AppPdfTextAlign.center),
+                        text(formatDate(data.generatedAt, isBengali: isBengali), size: 6.5, color: PdfColor.fromHex('#546e7a'), align: AppPdfTextAlign.center),
                       ],
                     ),
                   ),
@@ -690,7 +626,7 @@ class PdfDocumentBuilder {
                     : 'Confidential store audit ledger generated by Baki Khata App',
                 size: 7.5,
                 color: PdfColor.fromHex('#78909c'),
-                align: ShapedTextAlign.center,
+                align: AppPdfTextAlign.center,
               ),
             ),
           ];
@@ -713,9 +649,9 @@ class PdfDocumentBuilder {
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
-            text(title, size: 8, color: PdfColor.fromHex(textHex), align: ShapedTextAlign.center),
+            text(title, size: 8, color: PdfColor.fromHex(textHex), align: AppPdfTextAlign.center),
             pw.SizedBox(height: 2),
-            text(value, bold: true, size: 10.5, color: PdfColor.fromHex(textHex), align: ShapedTextAlign.center),
+            text(value, bold: true, size: 10.5, color: PdfColor.fromHex(textHex), align: AppPdfTextAlign.center),
           ],
         ),
       ),
