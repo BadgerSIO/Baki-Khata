@@ -84,7 +84,7 @@ class LocalDatabase {
     if (path != null) {
       _database = await openDatabase(
         path,
-        version: 4,
+        version: 5,
         onCreate: _createDB,
         onUpgrade: _onUpgrade,
       );
@@ -94,7 +94,7 @@ class LocalDatabase {
     final fullPath = p.join(dbPath, 'baki_khata.db');
     _database = await openDatabase(
       fullPath,
-      version: 4,
+      version: 5,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -107,7 +107,7 @@ class LocalDatabase {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -154,6 +154,10 @@ class LocalDatabase {
         nagad_is_merchant INTEGER DEFAULT 0,
         rocket_number TEXT,
         rocket_is_merchant INTEGER DEFAULT 0,
+        proprietor_name TEXT,
+        shop_logo_path TEXT,
+        shop_seal_type TEXT DEFAULT 'auto',
+        custom_seal_path TEXT,
         updated_at TEXT
       )
     ''');
@@ -228,6 +232,20 @@ class LocalDatabase {
       } catch (_) {}
       try {
         await db.execute('ALTER TABLE settings ADD COLUMN rocket_is_merchant INTEGER DEFAULT 0');
+      } catch (_) {}
+    }
+    if (oldVersion < 5) {
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN proprietor_name TEXT');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN shop_logo_path TEXT');
+      } catch (_) {}
+      try {
+        await db.execute("ALTER TABLE settings ADD COLUMN shop_seal_type TEXT DEFAULT 'auto'");
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE settings ADD COLUMN custom_seal_path TEXT');
       } catch (_) {}
     }
   }
@@ -340,14 +358,21 @@ class LocalDatabase {
   // --- Settings Local Operations ---
 
   Future<void> upsertSettings(Map<String, dynamic> data) async {
+    final sanitized = Map<String, dynamic>.from(data);
+    for (final key in sanitized.keys.toList()) {
+      final val = sanitized[key];
+      if (val is bool) {
+        sanitized[key] = val ? 1 : 0;
+      }
+    }
     if (kIsWeb) {
-      _webStore['settings']!.removeWhere((item) => item['user_id'] == data['user_id']);
-      _webStore['settings']!.add(Map<String, dynamic>.from(data));
+      _webStore['settings']!.removeWhere((item) => item['user_id'] == sanitized['user_id']);
+      _webStore['settings']!.add(sanitized);
       await _saveWebStore();
       return;
     }
     final db = await database;
-    await db!.insert('settings', data, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db!.insert('settings', sanitized, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<Map<String, dynamic>?> getSettings(String userId) async {

@@ -15,6 +15,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../reminders/services/reminder_tracker_service.dart';
 import '../reminders/widgets/whatsapp_reminder_sheet.dart';
 import '../shared/quick_action_dialogs.dart';
+import '../statements/widgets/statement_export_sheet.dart';
 
 class CustomerDetailsScreen extends ConsumerWidget {
   final String customerId;
@@ -103,10 +104,29 @@ class CustomerDetailsScreen extends ConsumerWidget {
           appBar: AppBar(
             title: Text(customer.name),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.picture_as_pdf_outlined),
+                tooltip: isBengali ? 'পিডিএফ স্টেটমেন্ট' : 'PDF Statement',
+                onPressed: () {
+                  StatementExportSheet.show(
+                    context,
+                    customer: customer,
+                    transactions: transactions,
+                    settings: effectiveSettings,
+                  );
+                },
+              ),
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 onSelected: (val) {
-                  if (val == 'edit') {
+                  if (val == 'statement') {
+                    StatementExportSheet.show(
+                      context,
+                      customer: customer,
+                      transactions: transactions,
+                      settings: effectiveSettings,
+                    );
+                  } else if (val == 'edit') {
                     showEditCustomerDialog(context, ref, customer);
                   } else if (val == 'delete') {
                     _confirmDeleteCustomer(
@@ -119,6 +139,16 @@ class CustomerDetailsScreen extends ConsumerWidget {
                   }
                 },
                 itemBuilder: (ctx) => [
+                  PopupMenuItem(
+                    value: 'statement',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.picture_as_pdf_outlined, size: 20, color: AppColors.primary),
+                        const SizedBox(width: 10),
+                        Text(isBengali ? 'পিডিএফ স্টেটমেন্ট' : 'PDF Statement'),
+                      ],
+                    ),
+                  ),
                   const PopupMenuItem(
                     value: 'edit',
                     child: Row(
@@ -201,13 +231,42 @@ class CustomerDetailsScreen extends ConsumerWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            Text(
-                              '${sortedTransactions.length} records',
-                              style: const TextStyle(
-                                color: Color(0xFF78909C),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextButton.icon(
+                                  onPressed: () {
+                                    StatementExportSheet.show(
+                                      context,
+                                      customer: customer,
+                                      transactions: transactions,
+                                      settings: effectiveSettings,
+                                    );
+                                  },
+                                  style: TextButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  ),
+                                  icon: const Icon(Icons.picture_as_pdf_rounded, size: 16, color: AppColors.primary),
+                                  label: Text(
+                                    isBengali ? 'পিডিএফ স্টেটমেন্ট' : 'PDF Statement',
+                                    style: const TextStyle(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${sortedTransactions.length} records',
+                                  style: const TextStyle(
+                                    color: Color(0xFF78909C),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

@@ -11,6 +11,10 @@ class AppSettings {
   final bool nagadIsMerchant;
   final String? rocketNumber;
   final bool rocketIsMerchant;
+  final String? proprietorName;
+  final String? shopLogoPath;
+  final String shopSealType;
+  final String? customSealPath;
   final DateTime updatedAt;
 
   const AppSettings({
@@ -26,6 +30,10 @@ class AppSettings {
     this.nagadIsMerchant = false,
     this.rocketNumber,
     this.rocketIsMerchant = false,
+    this.proprietorName,
+    this.shopLogoPath,
+    this.shopSealType = 'auto',
+    this.customSealPath,
     required this.updatedAt,
   });
 
@@ -47,6 +55,10 @@ class AppSettings {
     bool? nagadIsMerchant,
     String? rocketNumber,
     bool? rocketIsMerchant,
+    String? proprietorName,
+    String? shopLogoPath,
+    String? shopSealType,
+    String? customSealPath,
     DateTime? updatedAt,
   }) {
     return AppSettings(
@@ -62,6 +74,10 @@ class AppSettings {
       nagadIsMerchant: nagadIsMerchant ?? this.nagadIsMerchant,
       rocketNumber: rocketNumber ?? this.rocketNumber,
       rocketIsMerchant: rocketIsMerchant ?? this.rocketIsMerchant,
+      proprietorName: proprietorName ?? this.proprietorName,
+      shopLogoPath: shopLogoPath ?? this.shopLogoPath,
+      shopSealType: shopSealType ?? this.shopSealType,
+      customSealPath: customSealPath ?? this.customSealPath,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -81,6 +97,10 @@ class AppSettings {
       'nagad_is_merchant': nagadIsMerchant ? 1 : 0,
       'rocket_number': rocketNumber,
       'rocket_is_merchant': rocketIsMerchant ? 1 : 0,
+      'proprietor_name': proprietorName,
+      'shop_logo_path': shopLogoPath,
+      'shop_seal_type': shopSealType,
+      'custom_seal_path': customSealPath,
       'updated_at': updatedAt.toIso8601String(),
     };
   }
@@ -106,6 +126,10 @@ class AppSettings {
       nagadIsMerchant: parseBool(map['nagad_is_merchant'], defaultValue: false),
       rocketNumber: map['rocket_number'] as String?,
       rocketIsMerchant: parseBool(map['rocket_is_merchant'], defaultValue: false),
+      proprietorName: map['proprietor_name'] as String?,
+      shopLogoPath: map['shop_logo_path'] as String?,
+      shopSealType: (map['shop_seal_type'] as String?) ?? 'auto',
+      customSealPath: map['custom_seal_path'] as String?,
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
   }
@@ -125,6 +149,10 @@ class AppSettings {
       'nagad_is_merchant': nagadIsMerchant,
       'rocket_number': rocketNumber,
       'rocket_is_merchant': rocketIsMerchant,
+      'proprietor_name': proprietorName,
+      'shop_logo_path': shopLogoPath,
+      'shop_seal_type': shopSealType,
+      'custom_seal_path': customSealPath,
       'updated_at': updatedAt.toIso8601String(),
     };
   }

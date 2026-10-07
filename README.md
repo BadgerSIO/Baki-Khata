@@ -59,6 +59,12 @@ A clean, modern, and production-ready **Flutter application** designed for small
   - Customizable shop branding: Shop Phone Number, Address, and Custom Footer Messages.
   - Interactive voucher preview sheet with instant share, copy, and print options.
 
+- **📄 Official PDF Statement Export & Sharing**:
+  - Professional PDF statement generation for individual customers or full store ledgers.
+  - Flexible statement periods: *Last 30 Days*, *Last 3 Months*, *Last 6 Months*, *This Year*, *All Time*, or *Custom Date Range*.
+  - Itemized items breakdown toggle including quantities, rates, and totals.
+  - Built-in PDF print, preview, and 1-tap WhatsApp sharing.
+
 ---
 
 ## 🏗️ Architecture & Project Structure
@@ -93,6 +99,7 @@ lib/
     ├── reminders/                # Dedicated WhatsApp reminders, message builder & audit tracker
     ├── settings/                 # Shop profile, digital payment gateways (bKash/Nagad/Rocket) & backup
     ├── shared/                   # Reusable balance badges, stat cards, dialogs
+    ├── statements/               # Official PDF statement sheets & PDF generation service
     └── vouchers/                 # Digital receipt card & preview sheet
 ```
 

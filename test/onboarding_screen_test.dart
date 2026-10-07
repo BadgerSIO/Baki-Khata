@@ -241,6 +241,10 @@ class _MockSettingsRepository implements SettingsRepository {
     bool? nagadIsMerchant,
     String? rocketNumber,
     bool? rocketIsMerchant,
+    String? proprietorName,
+    String? shopLogoPath,
+    String? shopSealType,
+    String? customSealPath,
     bool overridePaymentMethods = false,
   }) async {
     updateCalls++;
@@ -257,6 +261,10 @@ class _MockSettingsRepository implements SettingsRepository {
       nagadIsMerchant: nagadIsMerchant ?? initialSettings.nagadIsMerchant,
       rocketNumber: rocketNumber ?? initialSettings.rocketNumber,
       rocketIsMerchant: rocketIsMerchant ?? initialSettings.rocketIsMerchant,
+      proprietorName: proprietorName ?? initialSettings.proprietorName,
+      shopLogoPath: shopLogoPath ?? initialSettings.shopLogoPath,
+      shopSealType: shopSealType ?? initialSettings.shopSealType,
+      customSealPath: customSealPath ?? initialSettings.customSealPath,
       updatedAt: DateTime.now(),
     );
     return updatedSettings!;

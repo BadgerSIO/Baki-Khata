@@ -31,6 +31,18 @@ void main() {
   ];
 
   group('SettingsScreen', () {
+    setUp(() {
+      final binding = TestWidgetsFlutterBinding.ensureInitialized();
+      binding.platformDispatcher.views.first.physicalSize = const Size(800, 1400);
+      binding.platformDispatcher.views.first.devicePixelRatio = 1.0;
+    });
+
+    tearDown(() {
+      final binding = TestWidgetsFlutterBinding.ensureInitialized();
+      binding.platformDispatcher.views.first.resetPhysicalSize();
+      binding.platformDispatcher.views.first.resetDevicePixelRatio();
+    });
+
     testWidgets(
         'Pre-fills shop name and currency in view mode, shows Edit button, hides Save Changes button',
         (tester) async {
@@ -520,6 +532,10 @@ class _MockSettingsRepository implements SettingsRepository {
     bool? nagadIsMerchant,
     String? rocketNumber,
     bool? rocketIsMerchant,
+    String? proprietorName,
+    String? shopLogoPath,
+    String? shopSealType,
+    String? customSealPath,
     bool overridePaymentMethods = false,
   }) async {
     updateCalls.add({
@@ -534,6 +550,10 @@ class _MockSettingsRepository implements SettingsRepository {
       'nagadIsMerchant': nagadIsMerchant,
       'rocketNumber': rocketNumber,
       'rocketIsMerchant': rocketIsMerchant,
+      'proprietorName': proprietorName,
+      'shopLogoPath': shopLogoPath,
+      'shopSealType': shopSealType,
+      'customSealPath': customSealPath,
       'overridePaymentMethods': overridePaymentMethods,
     });
     return AppSettings(

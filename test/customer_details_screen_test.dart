@@ -56,6 +56,18 @@ void main() {
     updatedAt: now,
   );
 
+  setUp(() {
+    final binding = TestWidgetsFlutterBinding.ensureInitialized();
+    binding.platformDispatcher.views.first.physicalSize = const Size(800, 1400);
+    binding.platformDispatcher.views.first.devicePixelRatio = 1.0;
+  });
+
+  tearDown(() {
+    final binding = TestWidgetsFlutterBinding.ensureInitialized();
+    binding.platformDispatcher.views.first.resetPhysicalSize();
+    binding.platformDispatcher.views.first.resetDevicePixelRatio();
+  });
+
   testWidgets('CustomerDetailsScreen renders header, balance, action buttons, and transaction history', (tester) async {
     await tester.pumpWidget(
       ProviderScope(

@@ -30,6 +30,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _shopNameController = TextEditingController();
+  final _proprietorNameController = TextEditingController();
   final _shopPhoneController = TextEditingController();
   final _shopAddressController = TextEditingController();
   final _currencyController = TextEditingController();
@@ -52,6 +53,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void dispose() {
     _shopNameController.dispose();
+    _proprietorNameController.dispose();
     _shopPhoneController.dispose();
     _shopAddressController.dispose();
     _currencyController.dispose();
@@ -64,6 +66,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _populate(AppSettings settings) {
     if (!_initialized) {
       _shopNameController.text = settings.shopName;
+      _proprietorNameController.text = settings.proprietorName ?? '';
       _shopPhoneController.text = settings.shopPhone ?? '';
       _shopAddressController.text = settings.shopAddress ?? '';
       _currencyController.text = settings.currencySymbol;
@@ -78,6 +81,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } else {
       if (!_isEditing) {
         _shopNameController.text = settings.shopName;
+        _proprietorNameController.text = settings.proprietorName ?? '';
         _shopPhoneController.text = settings.shopPhone ?? '';
         _shopAddressController.text = settings.shopAddress ?? '';
         _currencyController.text = settings.currencySymbol;
@@ -178,6 +182,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final settings = ref.read(settingsStreamProvider).value;
     if (settings != null) {
       _shopNameController.text = settings.shopName;
+      _proprietorNameController.text = settings.proprietorName ?? '';
       _shopPhoneController.text = settings.shopPhone ?? '';
       _shopAddressController.text = settings.shopAddress ?? '';
       _currencyController.text = settings.currencySymbol;
@@ -191,6 +196,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final settings = ref.read(settingsStreamProvider).value;
     if (settings != null) {
       _shopNameController.text = settings.shopName;
+      _proprietorNameController.text = settings.proprietorName ?? '';
       _shopPhoneController.text = settings.shopPhone ?? '';
       _shopAddressController.text = settings.shopAddress ?? '';
       _currencyController.text = settings.currencySymbol;
@@ -216,6 +222,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             currencySymbol: settings.currencySymbol,
             shopPhone: settings.shopPhone,
             shopAddress: settings.shopAddress,
+            proprietorName: settings.proprietorName,
             autoShowReceipt: val,
           );
     }
@@ -226,6 +233,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     setState(() => _isSaving = true);
     try {
       final name = _shopNameController.text.trim();
+      final proprietor = _proprietorNameController.text.trim();
       final phone = _shopPhoneController.text.trim();
       final addr = _shopAddressController.text.trim();
       final curr = _currencyController.text.trim();
@@ -234,6 +242,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             currencySymbol: curr.isEmpty ? '৳' : curr,
             shopPhone: phone.isEmpty ? null : phone,
             shopAddress: addr.isEmpty ? null : addr,
+            proprietorName: proprietor.isEmpty ? null : proprietor,
             autoShowReceipt: _autoShowReceipt,
           );
       if (showFeedback && mounted) {
@@ -697,6 +706,59 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
+                              Icons.person_outline_rounded,
+                              size: 20,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  currentLocale.languageCode == 'bn' ? 'স্বত্বাধিকারীর নাম' : 'Proprietor Name',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF78909C),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _proprietorNameController.text.isEmpty
+                                      ? (currentLocale.languageCode == 'bn' ? 'যুক্ত করা নেই' : 'Not set')
+                                      : _proprietorNameController.text,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: _proprietorNameController.text.isEmpty
+                                        ? const Color(0xFF90A4AE)
+                                        : const Color(0xFF191C1B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F4F2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
                               Icons.phone_outlined,
                               size: 20,
                               color: AppColors.primary,
@@ -846,6 +908,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         labelText: l10n?.shopName ?? 'Shop Name',
                         hintText: 'e.g. Bhai Bhai Store',
                         prefixIcon: const Icon(Icons.storefront_rounded),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _proprietorNameController,
+                      decoration: InputDecoration(
+                        labelText: currentLocale.languageCode == 'bn' ? 'স্বত্বাধিকারীর নাম' : 'Proprietor Name',
+                        hintText: 'e.g. Md. Rafiqul Islam',
+                        prefixIcon: const Icon(Icons.person_outline_rounded),
                       ),
                     ),
                     const SizedBox(height: 14),

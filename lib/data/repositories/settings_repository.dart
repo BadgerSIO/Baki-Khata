@@ -85,6 +85,10 @@ class SettingsRepository {
     bool? nagadIsMerchant,
     String? rocketNumber,
     bool? rocketIsMerchant,
+    String? proprietorName,
+    String? shopLogoPath,
+    String? shopSealType,
+    String? customSealPath,
     bool overridePaymentMethods = false,
   }) async {
     final now = DateTime.now().toUtc();
@@ -108,6 +112,10 @@ class SettingsRepository {
           ? rocketNumber
           : (rocketNumber ?? current.rocketNumber),
       rocketIsMerchant: rocketIsMerchant ?? current.rocketIsMerchant,
+      proprietorName: proprietorName ?? current.proprietorName,
+      shopLogoPath: shopLogoPath ?? current.shopLogoPath,
+      shopSealType: shopSealType ?? current.shopSealType,
+      customSealPath: customSealPath ?? current.customSealPath,
       updatedAt: now,
     );
 

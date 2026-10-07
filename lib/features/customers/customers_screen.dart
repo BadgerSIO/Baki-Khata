@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme.dart';
+import '../../data/models/app_settings.dart';
 import '../../data/models/customer.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../shared/quick_action_dialogs.dart';
+import '../statements/widgets/store_statement_export_sheet.dart';
 import 'customer_details_screen.dart';
 
 /// Provider computing net balance for each customer:
@@ -142,7 +144,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 
           return Column(
             children: [
-              _buildSearchAndSortBar(theme),
+              _buildSearchAndSortBar(theme, customers, settings),
               _buildFilterChips(
                 totalCount: customers.length,
                 dueCount: dueCount,
@@ -198,8 +200,16 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     );
   }
 
-  Widget _buildSearchAndSortBar(ThemeData theme) {
+  Widget _buildSearchAndSortBar(ThemeData theme, List<Customer> customers, AppSettings? settings) {
     final l10n = AppLocalizations.of(context);
+    final effectiveSettings = settings ??
+        AppSettings(
+          userId: '',
+          shopName: 'My Shop',
+          currencySymbol: '৳',
+          updatedAt: DateTime.now(),
+        );
+
     return Container(
       color: theme.scaffoldBackgroundColor,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
@@ -258,6 +268,30 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
           ),
           const SizedBox(width: 8),
           _buildSortButton(theme),
+          const SizedBox(width: 8),
+          Container(
+            height: 48,
+            width: 48,
+            decoration: const BoxDecoration(
+              color: Color(0xFFEFF3F1),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(
+                Icons.picture_as_pdf_outlined,
+                color: AppColors.primary,
+                size: 22,
+              ),
+              tooltip: 'Store Master Ledger PDF',
+              onPressed: () {
+                StoreStatementExportSheet.show(
+                  context,
+                  customers: customers,
+                  settings: effectiveSettings,
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

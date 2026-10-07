@@ -65,7 +65,7 @@ void main() {
       expect(message, contains('Kashem Store'));
       expect(message, contains('🔔 বাকি তাগাদা'));
       expect(message, contains('বর্তমান মোট বাকি: ৳ ২,৫০০'));
-      expect(message, contains('পরিশোধের মাধ্যম (বিকাশ/নগদ/দোকান): 01812345678'));
+      expect(message, contains('*পরিশোধের মাধ্যম (বিকাশ/নগদ/দোকান):* 01812345678'));
       expect(message, contains('আসসালামু আলাইকুম'));
     });
 
@@ -82,7 +82,7 @@ void main() {
       expect(message, contains('🚨 URGENT DUE REMINDER'));
       expect(message, contains('Total Net Due: ৳ 5,000'));
       expect(message, contains('Urgent Notice: Your credit balance is overdue.'));
-      expect(message, contains('Payment Method (bKash/Nagad/Shop): 01812345678'));
+      expect(message, contains('*Payment Method (bKash/Nagad/Shop):* 01812345678'));
     });
 
     test('builds account statement for settled account', () {
