@@ -7,6 +7,7 @@ import '../../core/current_user_service.dart';
 import '../../core/locale_provider.dart';
 import '../../core/supabase_client.dart';
 import '../../core/theme.dart';
+import '../../data/local/local_database.dart';
 import '../../data/models/app_settings.dart';
 import '../../data/models/transaction.dart';
 import '../../data/repositories/customer_repository.dart';
@@ -15,6 +16,7 @@ import '../../data/repositories/transaction_repository.dart';
 import '../../data/sync/sync_service.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../auth/account_screen.dart';
+import '../shared/legal_dialogs.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   final Future<void> Function()? onSignOut;
@@ -419,6 +421,134 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         await ref.read(settingsRepositoryProvider).refresh();
       } catch (e) {
         debugPrint('[SettingsScreen] Sign out: $e');
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteAccount(AppLocalizations? l10n) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: AppColors.debtText, size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l10n?.deleteAccount ?? 'Delete Account',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        content: Text(
+          l10n?.deleteAccountConfirm ??
+              'Are you sure you want to permanently delete your account and all associated data? This action cannot be undone.',
+        ),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(44),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: const BorderSide(color: Color(0xFFCFD8DC)),
+                    foregroundColor: const Color(0xFF546E7A),
+                  ),
+                  child: Text(
+                    l10n?.cancel ?? 'Cancel',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.debtText,
+                    minimumSize: const Size.fromHeight(44),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(
+                    l10n?.permanentlyDelete ?? 'Delete Permanently',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      final user = supabase.auth.currentUser;
+      final userId = user?.id;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n?.deletingAccount ?? 'Deleting account...'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      try {
+        if (userId != null && userId.isNotEmpty) {
+          // 1. Purge remote data in Supabase
+          try {
+            await supabase.from('transactions').delete().eq('user_id', userId);
+            await supabase.from('customers').delete().eq('user_id', userId);
+            await supabase.from('settings').delete().eq('user_id', userId);
+          } catch (e) {
+            debugPrint('[SettingsScreen] Remote data deletion partial error: $e');
+          }
+
+          // 2. Purge local SQLite data
+          await LocalDatabase.instance.clearUserData(userId);
+        }
+
+        // 3. Sign out of Supabase
+        await supabase.auth.signOut();
+
+        // 4. Invalidate & refresh repositories
+        await ref.read(customerRepositoryProvider).refresh();
+        await ref.read(transactionRepositoryProvider).refresh();
+        await ref.read(settingsRepositoryProvider).refresh();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                l10n?.deleteAccountSuccess ??
+                    'Your account and data have been permanently deleted.',
+              ),
+              backgroundColor: AppColors.primary,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('[SettingsScreen] Delete account error: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete account: $e'),
+              backgroundColor: AppColors.debtText,
+            ),
+          );
+        }
       }
     }
   }
@@ -1495,8 +1625,137 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             onPressed: () => _confirmSignOut(l10n),
                           ),
                         ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.debtText,
+                              side: BorderSide(color: AppColors.debtText.withValues(alpha: 0.5)),
+                              minimumSize: const Size.fromHeight(44),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                            label: Text(
+                              l10n?.deleteAccount ?? 'Delete Account',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                            onPressed: () => _confirmDeleteAccount(l10n),
+                          ),
+                        ),
                       ],
                     ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 5. About & Legal Card
+          Card(
+            margin: EdgeInsets.zero,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Color(0xFFE0E5E2)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n?.aboutAndLegal ?? 'About & Legal',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          'assets/images/app_logo.png',
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n?.appName ?? 'Baki Khata',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF191C1B),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              l10n?.appVersion ?? 'Version 1.0.0',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF78909C),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(color: Color(0xFFE0E5E2), height: 1),
+                  const SizedBox(height: 4),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: const Icon(Icons.privacy_tip_outlined, size: 20, color: AppColors.primary),
+                    title: Text(
+                      l10n?.privacyPolicy ?? 'Privacy Policy',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFF90A4AE)),
+                    onTap: () => LegalDialogs.showPrivacyPolicyDialog(context),
+                  ),
+                  const Divider(color: Color(0xFFE0E5E2), height: 1),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: const Icon(Icons.gavel_rounded, size: 20, color: AppColors.primary),
+                    title: Text(
+                      l10n?.termsOfService ?? 'Terms of Service',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFF90A4AE)),
+                    onTap: () => LegalDialogs.showTermsOfServiceDialog(context),
+                  ),
+                  const Divider(color: Color(0xFFE0E5E2), height: 1),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: const Icon(Icons.mail_outline_rounded, size: 20, color: AppColors.primary),
+                    title: Text(
+                      l10n?.contactSupport ?? 'Support & Contact',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                    ),
+                    subtitle: const Text(
+                      LegalDialogs.supportEmail,
+                      style: TextStyle(fontSize: 12, color: Color(0xFF78909C)),
+                    ),
+                    trailing: const Icon(Icons.open_in_new_rounded, size: 18, color: Color(0xFF90A4AE)),
+                    onTap: () => LegalDialogs.openSupportEmail(),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 24),

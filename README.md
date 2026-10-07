@@ -65,6 +65,11 @@ A clean, modern, and production-ready **Flutter application** designed for small
   - Itemized items breakdown toggle including quantities, rates, and totals.
   - Built-in PDF print, preview, and 1-tap WhatsApp sharing.
 
+- **🔒 Privacy, Legal & Google Play Store Compliance**:
+  - In-app Privacy Policy and Terms of Service dialogs for instant review.
+  - Web-hosted Privacy Policy (`/privacy.html`), Terms of Service (`/terms.html`), and Account Deletion Request page (`/delete-account.html`) fully compliant with Google Play Console policies.
+  - Complete account deletion workflow with cascade data cleanup.
+
 ---
 
 ## 🏗️ Architecture & Project Structure

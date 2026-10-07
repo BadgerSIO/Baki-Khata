@@ -411,18 +411,24 @@ class CustomerDetailsScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(10),
                       onTap: () async {
                         final phoneDigits =
-                            customer.phone!.replaceAll(RegExp(r'\s+'), '');
+                            customer.phone!.replaceAll(RegExp(r'[^\d+]'), '');
                         final phoneUri = Uri(scheme: 'tel', path: phoneDigits);
-                        if (await canLaunchUrl(phoneUri)) {
-                          await launchUrl(phoneUri);
-                        } else if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Could not open dialer for ${customer.phone}',
+                        try {
+                          if (await canLaunchUrl(phoneUri)) {
+                            await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
+                          } else {
+                            await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Could not open dialer for ${customer.phone}',
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          }
                         }
                       },
                       child: Padding(

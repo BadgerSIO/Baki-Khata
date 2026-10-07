@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Baki Khata (বাকি খাতা)</title>
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <style>
+    :root {
+      --primary: #1B5E20;
+      --primary-light: #E8F5E9;
+      --text-dark: #1F2937;
+      --text-muted: #4B5563;
+      --bg: #F9FAFB;
+      --card-bg: #FFFFFF;
+      --border: #E5E7EB;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--text-dark);
+      background-color: var(--bg);
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 16px;
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 32px auto;
+      padding: 0 20px 48px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1 {
+      color: var(--primary);
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    h2 {
+      color: var(--primary);
+      font-size: 19px;
+      margin-top: 28px;
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 6px;
+    }
+    p, li {
+      color: var(--text-dark);
+      font-size: 15px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      padding: 14px 16px;
+      border-radius: 6px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    .lang-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .lang-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .lang-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .footer {
+      text-align: center;
+      margin-top: 36px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>📱 Baki Khata (বাকি খাতা)</h1>
+    <div class="subtitle">Digital Customer Ledger & Credit Tracker</div>
+  </div>
+
+  <div class="container">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="switchLang('en')">English</button>
+      <button class="lang-btn" onclick="switchLang('bn')">বাংলা (Bangla)</button>
+    </div>
+
+    <!-- ENGLISH SECTION -->
+    <div class="card" id="content-en">
+      <h1>Privacy Policy</h1>
+      <div class="subtitle">Effective Date: October 2026 | Last Updated: October 2026</div>
+
+      <div class="highlight-box">
+        <strong>Privacy Commitment:</strong> Baki Khata is built with an <strong>offline-first</strong> architecture designed to respect the privacy of shop owners, small businesses, and their customers. We do not sell or monetize personal ledger records.
+      </div>
+
+      <h2>1. Information We Collect</h2>
+      <p>Baki Khata collects the minimum data required to provide digital credit ledger functionality:</p>
+      <ul>
+        <li><strong>Customer Profiles:</strong> Customer names, phone numbers, and addresses that you manually enter into the ledger.</li>
+        <li><strong>Transaction Ledger:</strong> Credit amounts, payments, running balances, notes, and dates.</li>
+        <li><strong>Shop Profile:</strong> Shop name, shop phone, address, and optional digital payment gateway numbers (bKash, Nagad, Rocket) used for reminders.</li>
+        <li><strong>Account Data:</strong> If you sign in, we process your email address or Google OAuth identifier through Supabase Authentication. In Guest Mode, no account data is collected.</li>
+      </ul>
+
+      <h2>2. Offline-First Storage & Cloud Synchronization</h2>
+      <ul>
+        <li><strong>Local Device Storage:</strong> All customer and transaction records are stored locally on your device in a secure SQLite database (with Web storage fallback).</li>
+        <li><strong>Cloud Backup (Supabase):</strong> When authenticated, your records sync to a dedicated Supabase PostgreSQL backend using industry-standard TLS 1.3 encryption and Row Level Security (RLS), ensuring only you can access your business records.</li>
+      </ul>
+
+      <h2>3. Advertising & Monetization</h2>
+      <p>Currently, Baki Khata does not display third-party advertisements or integrate tracking SDKs. In future versions, should advertising (such as Google AdMob) or premium lifetime licenses be introduced, this policy will be transparently updated to disclose all SDK data flows in accordance with Google Play Developer Policies. We will never sell your customer ledger records to advertisers or data brokers.</p>
+
+      <h2>4. WhatsApp & MFS Reminders</h2>
+      <p>WhatsApp reminder messages and payment prompts are dispatched directly through your device's installed WhatsApp application via standard deep links. No customer phone numbers or messages are processed by external intermediating proxy servers.</p>
+
+      <h2>5. Data Retention & Account Deletion</h2>
+      <p>You have full ownership of your data at all times:</p>
+      <ul>
+        <li><strong>In-App Deletion:</strong> You can permanently delete your account and all associated customer and transaction records at any time directly in <em>Settings &rarr; Account &rarr; Delete Account</em>.</li>
+        <li><strong>Web Deletion Portal:</strong> You can also request deletion without reinstalling the app at our <a href="/delete-account">Web Account Deletion Portal</a>.</li>
+      </ul>
+
+      <h2>6. Contact Us</h2>
+      <p>For any privacy questions or requests regarding your data, please contact:</p>
+      <p>
+        <strong>Email:</strong> <a href="mailto:badgers.io.team@gmail.com">badgers.io.team@gmail.com</a><br>
+        <strong>Website:</strong> <a href="https://baki-khata-eosin.vercel.app/">https://baki-khata-eosin.vercel.app/</a>
+      </p>
+    </div>
+
+    <!-- BANGLA SECTION -->
+    <div class="card" id="content-bn" style="display: none;">
+      <h1>গোপনীয়তা নীতি (Privacy Policy)</h1>
+      <div class="subtitle">কার্যকর তারিখ: অক্টোবর ২০২৬ | সর্বশেষ আপডেট: অক্টোবর ২০২৬</div>
+
+      <div class="highlight-box">
+        <strong>আমাদের প্রতিশ্রুতি:</strong> বাকি খাতা (Baki Khata) একটি <strong>অফলাইন-ফার্স্ট</strong> অ্যাপ। আমরা ব্যবহারকারীদের ব্যক্তিগত এবং ব্যবসায়িক তথ্যের গোপনীয়তা রক্ষা করতে প্রতিশ্রুতিবদ্ধ। আমরা কখনো আপনার হিসাবের তথ্য কোনো তৃতীয় পক্ষের কাছে বিক্রি করি না।
+      </div>
+
+      <h2>১. কি কি তথ্য সংগ্রহ করা হয়?</h2>
+      <ul>
+        <li><strong>কাস্টমার প্রোফাইল:</strong> কাস্টমারের নাম, ফোন নম্বর ও ঠিকানা যা আপনি নিজে যুক্ত করেন।</li>
+        <li><strong>লেনদেনের হিসাব:</strong> বাকি, জমা, মোট ব্যালেন্স ও তারিখ সংক্রান্ত তথ্য।</li>
+        <li><strong>দোকানের তথ্য:</strong> দোকানের নাম, ফোন নম্বর, ঠিকানা এবং তাগাদার জন্য ঐচ্ছিক বিকাশ, নগদ বা রকেট নম্বর।</li>
+        <li><strong>অ্যাকাউন্ট তথ্য:</strong> সাইন-ইন করার ক্ষেত্রে আপনার ইমেইল ঠিকানা (Supabase Auth এর মাধ্যমে)। গেস্ট মোডে কোনো অ্যাকাউন্ট তথ্য সংগৃহীত হয় না।</li>
+      </ul>
+
+      <h2>২. অফলাইন স্টোরেজ ও ক্লাউড ব্যাকআপ</h2>
+      <ul>
+        <li>আপনার ডিভাইসে SQLite ডাটাবেসে তথ্য সম্পূর্ণ অফলাইনে সুরক্ষিত থাকে।</li>
+        <li>লগইন করা অবস্থায় Supabase ক্লাউডে এনক্রিপ্ট করা আকারে ব্যাকআপ সংরক্ষিত হয়।</li>
+      </ul>
+
+      <h2>৩. বিজ্ঞাপন ও মনিটাইজেশন</h2>
+      <p>বর্তমানে বাকি খাতা অ্যাপটিতে কোনো তৃতীয় পক্ষের বিজ্ঞাপন প্রদর্শিত হয় না। ভবিষ্যতে বিজ্ঞাপনী সেবা (যেমন: Google AdMob) বা প্রিমিয়াম বিজ্ঞাপনমুক্ত লাইসেন্স যুক্ত করা হলে তা নীতিমালায় বিস্তারিত জানানো হবে। আমরা কখনো আপনার ব্যক্তিগত হিসাবের তথ্য কোনো ডাটা ব্রোকারের কাছে বিক্রি করি না।</p>
+
+      <h2>৪. WhatsApp তাগাদা ও পেমেন্ট</h2>
+      <p>WhatsApp তাগাদা আপনার ডিভাইসে থাকা অফিসিয়াল WhatsApp অ্যাপের মাধ্যমে সরাসরি পাঠানো হয়। কোনো কাস্টমার নম্বর বা মেসেজ আমাদের নিজস্ব কোনো সার্ভারে রেকর্ড হয় না।</p>
+
+      <h2>৫. অ্যাকাউন্ট ও ডাটা ডিলিট করার অধিকার</h2>
+      <ul>
+        <li>অ্যাপের <em>Settings &rarr; Account &rarr; Delete Account</em> থেকে যেকোনো সময় সম্পূর্ণ ডাটা স্থায়ীভাবে মুছে ফেলা যায়।</li>
+        <li>অ্যাপ ইনস্টল না থাকলেও আমাদের <a href="/delete-account">ওয়েব পেজের মাধ্যমে ডাটা ডিলিটের অনুরোধ</a> করা যাবে।</li>
+      </ul>
+
+      <h2>৬. যোগাযোগ</h2>
+      <p>যে কোনো জিজ্ঞাসা বা সহযোগিতার জন্য আমাদের সাথে যোগাযোগ করুন:</p>
+      <p>
+        <strong>ইমেইল:</strong> <a href="mailto:badgers.io.team@gmail.com">badgers.io.team@gmail.com</a><br>
+        <strong>ওয়েবসাইট:</strong> <a href="https://baki-khata-eosin.vercel.app/">https://baki-khata-eosin.vercel.app/</a>
+      </p>
+    </div>
+
+    <div class="footer">
+      &copy; 2026 Baki Khata (বাকি খাতা). All rights reserved.
+    </div>
+  </div>
+
+  <script>
+    function switchLang(lang) {
+      document.getElementById('content-en').style.display = lang === 'en' ? 'block' : 'none';
+      document.getElementById('content-bn').style.display = lang === 'bn' ? 'block' : 'none';
+      const btns = document.querySelectorAll('.lang-btn');
+      btns[0].classList.toggle('active', lang === 'en');
+      btns[1].classList.toggle('active', lang === 'bn');
+    }
+  </script>
+</body>
+</html>

@@ -10,6 +10,7 @@ import '../../core/theme.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/sync/sync_service.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../shared/legal_dialogs.dart';
 import 'merge_guest_data_dialog.dart';
 import 'otp_verification_screen.dart';
 
@@ -584,10 +585,50 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       ),
                     ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              l10n?.termsNotice ?? 'By creating an account, you agree to our Terms of Service and Privacy Policy.',
-              textAlign: TextAlign.center,
+            const SizedBox(height: 14),
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  Localizations.localeOf(context).languageCode == 'bn'
+                      ? 'অ্যাকাউন্ট তৈরির মাধ্যমে আপনি আমাদের '
+                      : 'By creating an account, you agree to our ',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF60706B)),
+                ),
+                GestureDetector(
+                  onTap: () => LegalDialogs.showTermsOfServiceDialog(context),
+                  child: Text(
+                    l10n?.termsOfService ?? (Localizations.localeOf(context).languageCode == 'bn' ? 'ব্যবহারের শর্তাবলী' : 'Terms of Service'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+                Text(
+                  Localizations.localeOf(context).languageCode == 'bn' ? ' ও ' : ' and ',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF60706B)),
+                ),
+                GestureDetector(
+                  onTap: () => LegalDialogs.showPrivacyPolicyDialog(context),
+                  child: Text(
+                    l10n?.privacyPolicy ?? (Localizations.localeOf(context).languageCode == 'bn' ? 'গোপনীয়তা নীতি' : 'Privacy Policy'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+                Text(
+                  Localizations.localeOf(context).languageCode == 'bn' ? ' মেনে নিচ্ছেন।' : '.',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF60706B)),
+                ),
+              ],
             ),
           ],
         ),

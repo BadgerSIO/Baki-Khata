@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete Account & Data - Baki Khata (বাকি খাতা)</title>
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <style>
+    :root {
+      --primary: #1B5E20;
+      --primary-light: #E8F5E9;
+      --danger: #D32F2F;
+      --danger-light: #FFEBEE;
+      --text-dark: #1F2937;
+      --text-muted: #4B5563;
+      --bg: #F9FAFB;
+      --card-bg: #FFFFFF;
+      --border: #E5E7EB;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--text-dark);
+      background-color: var(--bg);
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 16px;
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 32px auto;
+      padding: 0 20px 48px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1 {
+      color: var(--danger);
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    h2 {
+      color: var(--text-dark);
+      font-size: 18px;
+      margin-top: 24px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 6px;
+    }
+    p, li {
+      color: var(--text-dark);
+      font-size: 15px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    .warning-box {
+      background: var(--danger-light);
+      border-left: 4px solid var(--danger);
+      padding: 16px;
+      border-radius: 8px;
+      margin: 20px 0;
+      color: #7F1D1D;
+      font-size: 14px;
+    }
+    .step-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .btn {
+      display: inline-block;
+      background: var(--danger);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    .btn:hover {
+      background: #B71C1C;
+      color: #fff;
+      text-decoration: none;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 36px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1 style="color: var(--primary);">📱 Baki Khata (বাকি খাতা)</h1>
+    <div class="subtitle">Digital Customer Ledger & Credit Tracker</div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h1>Account & Data Deletion Request</h1>
+      <div class="subtitle">Compliance with Google Play Account Deletion Policy</div>
+
+      <div class="warning-box">
+        <strong>Warning:</strong> Deleting your account will permanently erase all customer profiles, debt ledgers, transaction histories, and shop settings. This action is irreversible.
+      </div>
+
+      <h2>How to Delete Your Account</h2>
+
+      <div class="step-box">
+        <h3 style="margin-top:0; color: var(--primary);">Option 1: In-App Self-Serve Deletion (Instant)</h3>
+        <p>If you have the Baki Khata application installed on your Android device:</p>
+        <ol>
+          <li>Open the <strong>Baki Khata</strong> app.</li>
+          <li>Tap the <strong>Settings (সেটিংস)</strong> tab from the bottom navigation.</li>
+          <li>Scroll down to the <strong>Account</strong> section.</li>
+          <li>Tap the red <strong>Delete Account (অ্যাকাউন্ট ডিলিট করুন)</strong> button.</li>
+          <li>Confirm by tapping <strong>Delete Permanently</strong>.</li>
+        </ol>
+        <p><em>Result:</em> Your cloud data on Supabase and all local records on your device are purged instantly, and you are signed out.</p>
+      </div>
+
+      <div class="step-box">
+        <h3 style="margin-top:0; color: var(--primary);">Option 2: Web-Based Deletion Request (Without App)</h3>
+        <p>If you no longer have access to the app, you can submit an account deletion request by emailing us directly from your registered Google/Supabase email address:</p>
+        <a class="btn" href="mailto:badgers.io.team@gmail.com?subject=Baki%20Khata%20Account%20Deletion%20Request&body=Please%20delete%20my%20Baki%20Khata%20account%20and%20all%20associated%20ledger%20records.%0A%0ARegistered%20Email:%20">
+          Request Account Deletion via Email
+        </a>
+        <p style="margin-top: 14px; font-size: 13px; color: var(--text-muted);">
+          Alternatively, email <a href="mailto:badgers.io.team@gmail.com">badgers.io.team@gmail.com</a> with the subject <em>"Baki Khata Account Deletion Request"</em> and your registered account email.
+        </p>
+      </div>
+
+      <h2>What Data is Deleted?</h2>
+      <ul>
+        <li><strong>Customer Profiles:</strong> All customer names, phone numbers, and addresses.</li>
+        <li><strong>Transaction Ledger:</strong> All recorded credit (Baki), payment entries, running balances, and timestamps.</li>
+        <li><strong>Shop Profile:</strong> Shop name, address, phone number, and digital payment configuration (bKash/Nagad/Rocket).</li>
+        <li><strong>Authentication Credentials:</strong> Your user identity and login session in Supabase Auth.</li>
+      </ul>
+
+      <h2>Data Retention Timeline</h2>
+      <ul>
+        <li><strong>In-app deletion:</strong> Processed <strong>immediately (0 seconds)</strong>.</li>
+        <li><strong>Email web requests:</strong> Verified and permanently purged from our backend database within <strong>48 hours</strong> of receipt.</li>
+        <li>No personal ledger data is retained for marketing, analytics, or third-party purposes following deletion.</li>
+      </ul>
+
+      <h2>Contact Us</h2>
+      <p>
+        <strong>Support Email:</strong> <a href="mailto:badgers.io.team@gmail.com">badgers.io.team@gmail.com</a><br>
+        <strong>Home:</strong> <a href="https://baki-khata-eosin.vercel.app/">https://baki-khata-eosin.vercel.app/</a> | 
+        <a href="/privacy">Privacy Policy</a> | 
+        <a href="/terms">Terms of Service</a>
+      </p>
+    </div>
+
+    <div class="footer">
+      &copy; 2026 Baki Khata (বাকি খাতা). All rights reserved.
+    </div>
+  </div>
+
+</body>
+</html>

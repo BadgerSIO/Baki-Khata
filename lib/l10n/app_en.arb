@@ -272,5 +272,12 @@
   "addPaymentMethodsTip": "Add bKash or Nagad in Settings to include payment info in reminders",
   "configureInSettings": "Settings",
   "payAtShopPrompt": "Kindly request to settle the balance at the shop.",
-  "contactOrShopPrompt": "Pay at shop or contact:"
+  "contactOrShopPrompt": "Pay at shop or contact:",
+  "privacyPolicy": "Privacy Policy",
+  "termsOfService": "Terms of Service",
+  "aboutAndLegal": "About & Legal",
+  "contactSupport": "Support & Contact",
+  "deleteAccountSuccess": "Your account and data have been permanently deleted.",
+  "deletingAccount": "Deleting account...",
+  "permanentlyDelete": "Delete Permanently"
 }

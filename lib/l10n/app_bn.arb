@@ -219,5 +219,12 @@
   "addPaymentMethodsTip": "তাগাদায় বিকাশ বা নগদ নম্বর যুক্ত করতে সেটিংসে যান",
   "configureInSettings": "সেটিংস",
   "payAtShopPrompt": "দোকানে এসে পরিশোধ করার বিনীত অনুরোধ রইল।",
-  "contactOrShopPrompt": "দোকানে এসে অথবা যোগাযোগ করে পরিশোধ করুন:"
+  "contactOrShopPrompt": "দোকানে এসে অথবা যোগাযোগ করে পরিশোধ করুন:",
+  "privacyPolicy": "গোপনীয়তা নীতি",
+  "termsOfService": "ব্যবহারের শর্তাবলী",
+  "aboutAndLegal": "অ্যাপ সম্পর্কিত ও নীতিমালা",
+  "contactSupport": "সহায়তা ও যোগাযোগ",
+  "deleteAccountSuccess": "আপনার অ্যাকাউন্ট ও সমস্ত তথ্য মুছে ফেলা হয়েছে।",
+  "deletingAccount": "অ্যাকাউন্ট মুছে ফেলা হচ্ছে...",
+  "permanentlyDelete": "স্থায়ীভাবে মুছুন"
 }

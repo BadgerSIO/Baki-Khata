@@ -439,6 +439,99 @@ void main() {
       expect(find.text('Cancel'), findsOneWidget);
     });
 
+    testWidgets(
+        'Authenticated user renders Delete Account button and tapping it opens confirmation dialog',
+        (tester) async {
+      final mockRepo = _MockSettingsRepository(initialSettings: testSettings);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            currentUserIdProvider.overrideWith((ref) => Stream.value('user-1')),
+            ...emptyDataOverrides,
+            settingsStreamProvider
+                .overrideWith((ref) => Stream.value(testSettings)),
+            settingsRepositoryProvider.overrideWithValue(mockRepo),
+            syncStatusProvider.overrideWith((ref) => SyncStatus.idle),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const SettingsScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final deleteBtn = find.widgetWithText(OutlinedButton, 'Delete Account');
+      await tester.scrollUntilVisible(
+        deleteBtn,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.ensureVisible(deleteBtn);
+      await tester.pumpAndSettle();
+      expect(deleteBtn, findsOneWidget);
+
+      await tester.tap(deleteBtn);
+      await tester.pumpAndSettle();
+
+      // Delete confirmation dialog shown
+      expect(find.widgetWithText(FilledButton, 'Delete Permanently'), findsOneWidget);
+      expect(find.widgetWithText(OutlinedButton, 'Cancel'), findsOneWidget);
+    });
+
+    testWidgets('About & Legal Card displays app version, privacy policy, and terms of service', (tester) async {
+      final mockRepo = _MockSettingsRepository(initialSettings: testSettings);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...emptyDataOverrides,
+            settingsStreamProvider.overrideWith((ref) => Stream.value(testSettings)),
+            settingsRepositoryProvider.overrideWithValue(mockRepo),
+            syncStatusProvider.overrideWith((ref) => SyncStatus.idle),
+            lastSyncedTimeProvider.overrideWith((ref) => now),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const SettingsScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('About & Legal'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('About & Legal'), findsOneWidget);
+      expect(find.text('Version 1.0.0'), findsOneWidget);
+      expect(find.text('Privacy Policy'), findsOneWidget);
+      expect(find.text('Terms of Service'), findsOneWidget);
+      expect(find.text('Support & Contact'), findsOneWidget);
+
+      // Scroll to Privacy Policy tile and verify dialog opens
+      final privacyTile = find.text('Privacy Policy');
+      await tester.scrollUntilVisible(
+        privacyTile,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.ensureVisible(privacyTile);
+      await tester.pumpAndSettle();
+
+      await tester.tap(privacyTile);
+      await tester.pumpAndSettle();
+      expect(find.text('Got it'), findsOneWidget);
+    });
+
     testWidgets('Digital Payment Methods Card displays configured methods and allows editing', (tester) async {
       final configuredSettings = testSettings.copyWith(
         bkashNumber: '01711223344',

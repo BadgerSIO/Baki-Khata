@@ -672,4 +672,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contactOrShopPrompt => 'Pay at shop or contact:';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get termsOfService => 'Terms of Service';
+
+  @override
+  String get aboutAndLegal => 'About & Legal';
+
+  @override
+  String get contactSupport => 'Support & Contact';
+
+  @override
+  String get deleteAccountSuccess =>
+      'Your account and data have been permanently deleted.';
+
+  @override
+  String get deletingAccount => 'Deleting account...';
+
+  @override
+  String get permanentlyDelete => 'Delete Permanently';
 }

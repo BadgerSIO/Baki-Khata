@@ -1357,6 +1357,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pay at shop or contact:'**
   String get contactOrShopPrompt;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @termsOfService.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get termsOfService;
+
+  /// No description provided for @aboutAndLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'About & Legal'**
+  String get aboutAndLegal;
+
+  /// No description provided for @contactSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support & Contact'**
+  String get contactSupport;
+
+  /// No description provided for @deleteAccountSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account and data have been permanently deleted.'**
+  String get deleteAccountSuccess;
+
+  /// No description provided for @deletingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting account...'**
+  String get deletingAccount;
+
+  /// No description provided for @permanentlyDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Permanently'**
+  String get permanentlyDelete;
 }
 
 class _AppLocalizationsDelegate

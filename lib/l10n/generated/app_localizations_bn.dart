@@ -670,4 +670,26 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get contactOrShopPrompt => 'দোকানে এসে অথবা যোগাযোগ করে পরিশোধ করুন:';
+
+  @override
+  String get privacyPolicy => 'গোপনীয়তা নীতি';
+
+  @override
+  String get termsOfService => 'ব্যবহারের শর্তাবলী';
+
+  @override
+  String get aboutAndLegal => 'অ্যাপ সম্পর্কিত ও নীতিমালা';
+
+  @override
+  String get contactSupport => 'সহায়তা ও যোগাযোগ';
+
+  @override
+  String get deleteAccountSuccess =>
+      'আপনার অ্যাকাউন্ট ও সমস্ত তথ্য মুছে ফেলা হয়েছে।';
+
+  @override
+  String get deletingAccount => 'অ্যাকাউন্ট মুছে ফেলা হচ্ছে...';
+
+  @override
+  String get permanentlyDelete => 'স্থায়ীভাবে মুছুন';
 }

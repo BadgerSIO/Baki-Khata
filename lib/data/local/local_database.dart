@@ -470,6 +470,24 @@ class LocalDatabase {
     await clearGuestPendingOps();
   }
 
+  Future<void> clearUserData(String userId) async {
+    if (kIsWeb) {
+      _webStore['customers']!.removeWhere((item) => item['user_id'] == userId);
+      _webStore['transactions']!.removeWhere((item) => item['user_id'] == userId);
+      _webStore['settings']!.removeWhere((item) => item['user_id'] == userId);
+      _webStore['pending_ops']!.removeWhere((item) =>
+          (item['payload'] as String? ?? '').contains(userId));
+      await _saveWebStore();
+      return;
+    }
+    final db = await database;
+    if (db == null) return;
+    await db.delete('customers', where: 'user_id = ?', whereArgs: [userId]);
+    await db.delete('transactions', where: 'user_id = ?', whereArgs: [userId]);
+    await db.delete('settings', where: 'user_id = ?', whereArgs: [userId]);
+    await db.delete('pending_ops', where: 'payload LIKE ?', whereArgs: ['%$userId%']);
+  }
+
   // --- Pending Operations Local Operations ---
 
   Future<int> insertPendingOp({
