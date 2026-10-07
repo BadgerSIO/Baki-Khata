@@ -22,7 +22,7 @@ flutter pub get
 echo "==> Building Flutter Web..."
 flutter build web --release
 
-echo "==> Copying static web pages..."
-cp -f web/*.html build/web/ 2>/dev/null || true
+echo "==> Copying static legal pages (privacy, terms, delete-account)..."
+cp -f web/privacy.html web/terms.html web/delete-account.html build/web/ 2>/dev/null || true
 
 echo "==> Flutter Web build completed successfully!"
