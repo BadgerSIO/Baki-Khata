@@ -27,8 +27,11 @@ We collect and process the minimum information necessary to deliver digital ledg
 
 ---
 
-## 4. Advertising & Monetization
-Currently, Baki Khata does not display third-party advertisements or integrate ad tracking SDKs. In future releases, should advertising (such as Google AdMob) or premium lifetime licenses be introduced, this policy will be updated and relevant data practices will be transparently disclosed under Google Play Developer Policies. We will never sell your customer records or financial ledgers to data brokers.
+## 4. Advertising & Monetization (Google AdMob)
+Baki Khata displays advertisements served by **Google AdMob** to support free access and ongoing maintenance of the application. 
+- **AdMob Data Processing:** The Google Mobile Ads SDK may collect pseudonymous device identifiers (such as Android Advertising ID), general IP-derived coarse location, and ad interaction analytics to deliver relevant ads, measure ad performance, and combat ad fraud, in accordance with [Google's Privacy & Terms](https://policies.google.com/technologies/ads).
+- **Zero Ledger Data Sharing:** Your financial transactions, customer debts, and ledger balances are strictly private and are **never** shared with Google AdMob or any external advertisers.
+- **Opt-Out:** Users can reset or opt out of personalized advertising at any time through their Android device settings under *Settings &rarr; Google &rarr; Ads*.
 
 ---
 
