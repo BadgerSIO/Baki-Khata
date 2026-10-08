@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/ads/widgets/rewarded_ad_prompt_dialog.dart';
 import '../../../core/locale_provider.dart';
 import '../../../core/theme.dart';
 import '../../../data/models/app_settings.dart';
@@ -105,6 +106,21 @@ class _StatementExportSheetState extends ConsumerState<StatementExportSheet> {
 
   Future<void> _handlePrintOrPreview(bool isBengali) async {
     if (_isGeneratingPrint || _isGeneratingShare) return;
+    await RewardedAdPromptDialog.show(
+      context: context,
+      titleEn: 'Export Statement for Free',
+      titleBn: 'পিডিএফ স্টেটমেন্ট ডাউনলোড করুন',
+      descriptionEn:
+          'Watch a short sponsor video to export and preview your official branded PDF statement.',
+      descriptionBn:
+          'আপনার ব্র্যান্ডেড পিডিএফ স্টেটমেন্ট দেখতে ও প্রিন্ট করতে একটি স্পনসর ভিডিও দেখুন।',
+      isBengali: isBengali,
+      onRewardUnlocked: () => _executePrintOrPreview(isBengali),
+    );
+  }
+
+  Future<void> _executePrintOrPreview(bool isBengali) async {
+    if (_isGeneratingPrint || _isGeneratingShare) return;
     setState(() => _isGeneratingPrint = true);
 
     try {
@@ -139,6 +155,21 @@ class _StatementExportSheetState extends ConsumerState<StatementExportSheet> {
   }
 
   Future<void> _handleShare(bool isBengali) async {
+    if (_isGeneratingPrint || _isGeneratingShare) return;
+    await RewardedAdPromptDialog.show(
+      context: context,
+      titleEn: 'Share Statement for Free',
+      titleBn: 'পিডিএফ স্টেটমেন্ট শেয়ার করুন',
+      descriptionEn:
+          'Watch a short sponsor video to export and share your official branded PDF statement.',
+      descriptionBn:
+          'আপনার ব্র্যান্ডেড পিডিএফ স্টেটমেন্ট শেয়ার করতে একটি স্পনসর ভিডিও দেখুন।',
+      isBengali: isBengali,
+      onRewardUnlocked: () => _executeShare(isBengali),
+    );
+  }
+
+  Future<void> _executeShare(bool isBengali) async {
     if (_isGeneratingPrint || _isGeneratingShare) return;
     setState(() => _isGeneratingShare = true);
 

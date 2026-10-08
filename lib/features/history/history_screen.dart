@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/ads/widgets/anchored_banner_ad.dart';
 import '../../core/theme.dart';
 import '../../data/models/customer.dart';
 import '../../data/models/transaction.dart';
@@ -97,10 +98,15 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             groups.putIfAbsent(header, () => []).add(tx);
           }
 
+          int txCounter = 0;
           for (final entry in groups.entries) {
             items.add(_DateHeaderItem(entry.key, entry.value.length));
             for (final tx in entry.value) {
               items.add(_TransactionItem(tx));
+              txCounter++;
+              if (txCounter % 8 == 0) {
+                items.add(_AdBannerItem(txCounter));
+              }
             }
           }
 
@@ -138,6 +144,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                               customer: customer,
                               currency: currency,
                               l10n: l10n,
+                            );
+                          } else if (item is _AdBannerItem) {
+                            return Padding(
+                              key: ValueKey('history_ad_banner_${item.index}'),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: const AnchoredBannerAd(),
                             );
                           }
                           return const SizedBox.shrink();
@@ -654,7 +666,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 }
 
-sealed class _HistoryListItem {}
+sealed class _HistoryListItem {
+  const _HistoryListItem();
+}
 
 class _DateHeaderItem extends _HistoryListItem {
   final String title;
@@ -667,5 +681,11 @@ class _TransactionItem extends _HistoryListItem {
   final AppTransaction tx;
 
   _TransactionItem(this.tx);
+}
+
+class _AdBannerItem extends _HistoryListItem {
+  final int index;
+
+  const _AdBannerItem(this.index);
 }
 

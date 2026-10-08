@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/ads/widgets/anchored_banner_ad.dart';
 import 'core/current_user_service.dart';
 import 'core/locale_provider.dart';
 import 'core/supabase_client.dart';
@@ -294,50 +295,56 @@ class _MainNavigationScaffoldState
       floatingActionButton: (currentIndex == 1)
           ? const QuickActionsFab()
           : null,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (index) {
-          ref.read(currentTabProvider.notifier).state = index;
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: const Color(0xFF78909C),
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        ),
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.dashboard_outlined),
-            activeIcon: const Icon(Icons.dashboard_rounded),
-            label: l10n?.navHome ?? 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.people_outline_rounded),
-            activeIcon: const Icon(Icons.people_rounded),
-            label: l10n?.navCustomers ?? 'Customers',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.receipt_long_outlined),
-            activeIcon: const Icon(Icons.receipt_long_rounded),
-            label: l10n?.navHistory ?? 'History',
-          ),
-          BottomNavigationBarItem(
-            icon: Badge(
-              isLabelVisible: showSettingsBadge,
-              backgroundColor: const Color(0xFFB78103),
-              child: const Icon(Icons.settings_outlined),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const AnchoredBannerAd(),
+          BottomNavigationBar(
+            currentIndex: currentIndex,
+            onTap: (index) {
+              ref.read(currentTabProvider.notifier).state = index;
+            },
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: AppColors.primary,
+            unselectedItemColor: const Color(0xFF78909C),
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
             ),
-            activeIcon: Badge(
-              isLabelVisible: showSettingsBadge,
-              backgroundColor: const Color(0xFFB78103),
-              child: const Icon(Icons.settings_rounded),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
             ),
-            label: l10n?.navSettings ?? 'Settings',
+            items: [
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.dashboard_outlined),
+                activeIcon: const Icon(Icons.dashboard_rounded),
+                label: l10n?.navHome ?? 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.people_outline_rounded),
+                activeIcon: const Icon(Icons.people_rounded),
+                label: l10n?.navCustomers ?? 'Customers',
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.receipt_long_outlined),
+                activeIcon: const Icon(Icons.receipt_long_rounded),
+                label: l10n?.navHistory ?? 'History',
+              ),
+              BottomNavigationBarItem(
+                icon: Badge(
+                  isLabelVisible: showSettingsBadge,
+                  backgroundColor: const Color(0xFFB78103),
+                  child: const Icon(Icons.settings_outlined),
+                ),
+                activeIcon: Badge(
+                  isLabelVisible: showSettingsBadge,
+                  backgroundColor: const Color(0xFFB78103),
+                  child: const Icon(Icons.settings_rounded),
+                ),
+                label: l10n?.navSettings ?? 'Settings',
+              ),
+            ],
           ),
         ],
       ),

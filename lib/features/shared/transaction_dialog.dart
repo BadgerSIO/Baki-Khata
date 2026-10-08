@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/ads/ad_service.dart';
 import '../../core/theme.dart';
 import '../../data/models/customer.dart';
 import '../../data/models/transaction.dart';
@@ -82,6 +83,9 @@ Future<AppTransaction?> showTransactionDialog(
     } catch (e) {
       debugPrint('[showTransactionDialog] Auto voucher error: $e');
     }
+
+    // Trigger interstitial ad check (capped at every 3rd transaction save)
+    AdService.instance.showInterstitialOnTransactionSave();
   }
 
   return result;

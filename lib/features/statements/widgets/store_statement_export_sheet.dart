@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/ads/widgets/rewarded_ad_prompt_dialog.dart';
 import '../../../core/locale_provider.dart';
 import '../../../core/theme.dart';
 import '../../../data/models/app_settings.dart';
@@ -90,6 +91,21 @@ class _StoreStatementExportSheetState extends ConsumerState<StoreStatementExport
 
   Future<void> _handlePrintOrPreview(StoreStatementData data, bool isBengali) async {
     if (_isGeneratingPrint || _isGeneratingShare) return;
+    await RewardedAdPromptDialog.show(
+      context: context,
+      titleEn: 'Export Store Statement for Free',
+      titleBn: 'দোকানের হিসাব ডাউনলোড করুন',
+      descriptionEn:
+          'Watch a short sponsor video to export and preview your store-wide PDF statement.',
+      descriptionBn:
+          'আপনার দোকানের সামগ্রিক পিডিএফ স্টেটমেন্ট দেখতে ও প্রিন্ট করতে একটি স্পনসর ভিডিও দেখুন।',
+      isBengali: isBengali,
+      onRewardUnlocked: () => _executePrintOrPreview(data, isBengali),
+    );
+  }
+
+  Future<void> _executePrintOrPreview(StoreStatementData data, bool isBengali) async {
+    if (_isGeneratingPrint || _isGeneratingShare) return;
     setState(() => _isGeneratingPrint = true);
 
     try {
@@ -123,6 +139,21 @@ class _StoreStatementExportSheetState extends ConsumerState<StoreStatementExport
   }
 
   Future<void> _handleShare(StoreStatementData data, bool isBengali) async {
+    if (_isGeneratingPrint || _isGeneratingShare) return;
+    await RewardedAdPromptDialog.show(
+      context: context,
+      titleEn: 'Share Store Statement for Free',
+      titleBn: 'দোকানের হিসাব শেয়ার করুন',
+      descriptionEn:
+          'Watch a short sponsor video to export and share your store-wide PDF statement.',
+      descriptionBn:
+          'আপনার দোকানের সামগ্রিক পিডিএফ স্টেটমেন্ট শেয়ার করতে একটি স্পনসর ভিডিও দেখুন।',
+      isBengali: isBengali,
+      onRewardUnlocked: () => _executeShare(data, isBengali),
+    );
+  }
+
+  Future<void> _executeShare(StoreStatementData data, bool isBengali) async {
     if (_isGeneratingPrint || _isGeneratingShare) return;
     setState(() => _isGeneratingShare = true);
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'app.dart';
+import 'core/ads/ad_service.dart';
 import 'core/supabase_client.dart';
 import 'data/local/local_database.dart';
 
@@ -15,6 +16,9 @@ Future<void> main() async {
 
   // 2. Initialize Local Database
   await LocalDatabase.instance.initialize();
+
+  // 3. Initialize Google Mobile Ads (no-ops on Web)
+  await AdService.instance.initialize();
 
   runApp(
     const ProviderScope(

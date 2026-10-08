@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/ads/widgets/anchored_banner_ad.dart';
 import '../../core/locale_provider.dart';
 import '../../core/theme.dart';
 import '../../data/models/app_settings.dart';
@@ -298,6 +299,7 @@ class CustomerDetailsScreen extends ConsumerWidget {
               ],
             ),
           ),
+          bottomNavigationBar: const AnchoredBannerAd(),
         );
       },
       loading: () => const Scaffold(
