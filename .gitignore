@@ -49,3 +49,9 @@ app.*.map.json
 
 # Generated APKs for local distribution / zip
 release_apk/
+
+# Release Keystores & Credentials Backup (CRITICAL: Never commit to git!)
+*.jks
+*.keystore
+key.properties
+*credentials_backup*
