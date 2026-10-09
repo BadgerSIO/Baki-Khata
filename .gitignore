@@ -55,3 +55,5 @@ release_apk/
 *.keystore
 key.properties
 *credentials_backup*
+baki_khata_credentials_backup.zip
+*.zip
